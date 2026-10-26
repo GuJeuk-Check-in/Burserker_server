@@ -1,6 +1,6 @@
 package com.example.burserker.beopdong.domain.organ.presentation.dto.request;
 
-import org.hibernate.validator.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 
 public record LoginOrganRequest (
     @NotBlank(message = "기관명을 입력해주세요.")
