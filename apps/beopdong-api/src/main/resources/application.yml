@@ -21,3 +21,10 @@ spring:
 server:
   # IDE 로컬 실행은 env에서 8082, 컨테이너 기본 실행은 8080을 사용합니다.
   port: ${SERVER_PORT:8080}
+
+jwt:
+  header: Authorization
+  prefix: Bearer
+  accessExpiration: 7200
+  refreshExpiration: 60400
+  secretKey: ${JWT_SECRET_KEY}
