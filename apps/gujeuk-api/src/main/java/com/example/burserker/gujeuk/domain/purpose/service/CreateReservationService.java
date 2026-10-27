@@ -18,20 +18,21 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class CreateReservationService {
+    private static final Long GUJEUK_ORGAN_ID = 1L;
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
     private final PurposeRepository purposeRepository;
     private final UserRepository userRepository;
     private final PurposeReservationRepository reservationRepository;
 
     @Transactional
-    public void execute(Long organId, PurposeReservationCreateRequest request) {
+    public void execute(PurposeReservationCreateRequest request) {
         String phone = request.phone() == null ? "" : request.phone().replace("-", "");
 
         User user = phone.isBlank()
-                ? userRepository.findByOrganIdAndName(organId, request.name().trim())
-                : userRepository.findByOrganIdAndPhoneWithoutHyphens(organId, phone);
+                ? userRepository.findByOrganIdAndName(GUJEUK_ORGAN_ID, request.name().trim())
+                : userRepository.findByOrganIdAndPhoneWithoutHyphens(GUJEUK_ORGAN_ID, phone);
 
-        Purpose purpose = purposeRepository.findByOrganIdAndPurposeName(organId, request.purpose().trim())
+        Purpose purpose = purposeRepository.findByOrganIdAndPurposeName(GUJEUK_ORGAN_ID, request.purpose().trim())
                 .orElseThrow(() -> PurposeNotFoundException.EXCEPTION);
 
         if (!purpose.isReservationStatus()) {
