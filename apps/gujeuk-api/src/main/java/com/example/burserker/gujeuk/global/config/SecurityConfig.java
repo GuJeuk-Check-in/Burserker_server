@@ -53,6 +53,7 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
+                                "/user/reservation",
                                 "/common/analytics/check-in-funnel",
                                 "/common/analytics/check-in-funnel/**"
                         ).hasRole("ORGAN")
