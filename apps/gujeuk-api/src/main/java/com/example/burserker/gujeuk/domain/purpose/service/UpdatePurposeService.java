@@ -16,6 +16,6 @@ public class UpdatePurposeService {
     public void execute(Long id, PurposeRequest purposeRequest) {
         Purpose purpose = purposeFacade.getPurposeById(id);
 
-        purpose.updatePurpose(purposeRequest.purpose());
+        purpose.updatePurpose(purposeRequest.purpose(), purposeRequest.reservationStatus());
     }
 }

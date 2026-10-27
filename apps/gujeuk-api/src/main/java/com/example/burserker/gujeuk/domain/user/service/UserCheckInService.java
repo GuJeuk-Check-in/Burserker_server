@@ -30,7 +30,6 @@ public class UserCheckInService {
 
     @Transactional
     public void execute(UserCheckInRequest request) {
-
         if (request.clientRecordId() != null) {
             Optional<Log> existingLog = logRepository.findByClientRecordId(request.clientRecordId());
             if (existingLog.isPresent()) {
@@ -49,7 +48,9 @@ public class UserCheckInService {
         Purpose purpose = purposeFacade.getPurpose(organ.getId(), request.purpose());
 
         LocalDateTime visitDateTime = request.visitTime();
+
         String visitDate = DateFormatter.toVisitDate(visitDateTime);
+
         String visitTime = DateFormatter.toVisitTime(visitDateTime);
 
         int year = visitDateTime.getYear();

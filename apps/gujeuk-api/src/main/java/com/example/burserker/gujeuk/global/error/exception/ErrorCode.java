@@ -27,6 +27,9 @@ public enum ErrorCode {
     PURPOSE_NOT_FOUND(404, "존재하지 않는 방문목적입니다."),
     PURPOSE_ALREADY_EXIST(409, "이미 존재하는 방문 목적입니다."),
 
+    RESERVATION_NOT_ALLOWED(400, "예약할 수 없는 방문 목적입니다."),
+    RESERVATION_SLOT_UNAVAILABLE(409, "이미 예약된 시간입니다."),
+
     USER_NOT_FOUND(404, "해당 유저가 존재 하지 않습니다."),
     PASSWORD_MISMATCH(401, "비밀 번호가 일치 하지 않습니다."),
     USER_ACCESS_DENIED(403, "해당 유저에 관한 권한이 없습니다."),

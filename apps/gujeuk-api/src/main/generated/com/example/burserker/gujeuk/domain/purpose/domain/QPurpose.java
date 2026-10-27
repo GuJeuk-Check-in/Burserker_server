@@ -33,6 +33,8 @@ public class QPurpose extends EntityPathBase<Purpose> {
 
     public final StringPath purposeName = createString("purposeName");
 
+    public final BooleanPath reservationStatus = createBoolean("reservationStatus");
+
     public QPurpose(String variable) {
         this(Purpose.class, forVariable(variable), INITS);
     }

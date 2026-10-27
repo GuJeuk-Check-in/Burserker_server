@@ -22,8 +22,12 @@ public class Purpose extends BaseIdEntity {
     @JoinColumn(name = "organ_id", nullable = false)
     private Organ organ;
 
-    public void updatePurpose(String purposeName) {
+    @Column(nullable = false)
+    private boolean reservationStatus;
+
+    public void updatePurpose(String purposeName, boolean reservationStatus) {
         this.purposeName = purposeName;
+        this.reservationStatus = reservationStatus;
     }
 
     public void updatePurposeIndex(int purposeIndex) {

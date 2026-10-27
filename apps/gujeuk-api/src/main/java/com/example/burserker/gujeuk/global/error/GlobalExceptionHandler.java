@@ -55,6 +55,12 @@ public class GlobalExceptionHandler {
             return new ResponseEntity<>(response, HttpStatus.valueOf(errorCode.getStatusCode()));
         }
 
+        if (message != null && message.contains("uk_reservation_slot")) {
+            ErrorCode errorCode = ErrorCode.RESERVATION_SLOT_UNAVAILABLE;
+            ErrorResponse response = ErrorResponse.of(errorCode, errorCode.getErrorMessage());
+            return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+        }
+
         ErrorCode errorCode = ErrorCode.BAD_REQUEST;
         ErrorResponse response = ErrorResponse.of(errorCode, errorCode.getErrorMessage());
 

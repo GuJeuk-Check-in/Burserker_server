@@ -32,7 +32,9 @@
   "birthYMD": "string",
   "residence": "string",
   "privacyAgreed": true,
-  "purpose": "string"
+  "purpose": "string",
+  "visitTime": "2026-10-27T10:00:00",
+  "reservationTime": "10:30"
 }
 ```
 
@@ -47,17 +49,12 @@
 | residence | string | O | 거주지 |
 | privacyAgreed | boolean | O | 개인정보 동의 |
 | purpose | string | O | 방문목적 |
+| visitTime | LocalDateTime | O | 기존 회원가입 처리에 필요한 방문시각 |
+| reservationTime | string | X | 함께 예약할 시작 시각 (`HH:mm`, 09:30~20:30). 없으면 예약을 생성하지 않습니다. |
 
-**Response (201 Created)**
-```json
-{
-  "userId": "string"
-}
-```
+회원 생성 → 체크인 기록 저장 → `reservationTime`이 있을 때 예약 저장 순서로 처리합니다. 예약 시간이 있어도 체크인을 함께 저장하므로 `visitTime`은 필수입니다. 예약은 `reservationStatus=true`인 방문 목적에만 가능하며, 예약 슬롯 충돌 등으로 실패하면 이번 요청의 회원 생성·체크인도 함께 롤백됩니다.
 
-| 필드 | 타입 | 설명 |
-|------|------|------|
-| userId | string | 생성된 사용자 ID |
+**Response (201 Created)**: 본문 없음
 
 **Error List**
 <details>
@@ -1087,6 +1084,35 @@ Body: Excel 파일 (byte[])
   "description": "상세 설명"
 }
 ```
+
+---
+
+## 시설 예약 (구즉 이용자 화면, 토큰 불필요)
+
+`POST /user/reservation`은 로그인 토큰 없이 호출하는 공개 API입니다. 서비스에서 구즉 기관 ID 1을 사용하여 구즉 회원과 방문 목적만 조회합니다. 컨트롤러에서는 기관 ID를 받지 않습니다.
+
+먼저 `POST /user`에 `{"name":"김정욱"}`을 보내 회원 존재 여부를 확인합니다. 새 회원은 `/user/sign-up`에 선택적으로 `reservationTime`을 보내 회원가입·체크인 후 예약까지 생성할 수 있습니다. 기존 회원은 별도 예약 API를 사용합니다. `duplicateName=true`이면 전화번호를 한 번 더 받아 구분합니다. 예약 과정에서는 회원 조회 응답의 `userId`를 쓰지 않고 이름과 필요 시 전화번호를 `/user/reservation`에 보냅니다.
+
+이번 변경에는 예약 가능 시간 조회나 예약 가능 방문 목적 조회 API가 포함되지 않습니다. 예약 생성 시 서버가 방문 목적의 예약 여부를 확인하고, DB가 중복 예약을 최종 차단합니다.
+
+`POST /user/reservation` 요청 예시:
+
+```json
+{
+  "purpose": "음악실",
+  "name": "김정욱",
+  "phone": null,
+  "maleCount": 1,
+  "femaleCount": 0,
+  "startTime": "10:30"
+}
+```
+
+- `reservationStatus=true`인 목적에만 예약할 수 있습니다. 기존 방문 목적의 기본값은 `false`이며 `/purpose` 생성·수정 요청에 선택적으로 `reservationStatus`를 보낼 수 있습니다. 기존 방문 목적 목록 응답에 예약 여부를 추가하지는 않습니다.
+- 예약 날짜는 요청 당일로 저장합니다. 선택 가능한 시작 시각은 09:30~20:30이며, 같은 회원의 여러 예약은 허용하되 같은 시설·날짜·시각에는 한 건만 저장됩니다. 중복 슬롯은 HTTP 409를 반환합니다. 지난 시각인지 서버에서 별도로 검사하지 않습니다.
+- 기존 회원은 이 요청으로 예약만 생성합니다. 체크인 기록이나 방문 횟수는 변경하지 않습니다. 일반 목적의 기존 회원은 기존 `POST /user/check-in`을 사용합니다.
+- `phone`이 null이거나 빈 값이면 이름만으로, 번호가 있으면 이름을 비교하지 않고 전화번호만으로 구즉 회원을 단건 조회합니다. 전화번호는 입력값과 DB 값 모두 하이픈을 제거하여 대조합니다. 앞 단계에서 회원을 확인한 요청을 전제로 하며, 예약 서비스에서 회원 존재 여부를 재검사하지 않습니다. 동일 조건의 회원이 여러 명이면 JPA 단건 조회 오류가 발생합니다.
+- 성공 시 HTTP 201을 반환합니다. 예약에 회원 이름과 대표 전화번호를 저장하며, 번호가 없으면 비워 둡니다. 예약 종료 문자 발송은 아직 연결되지 않았습니다.
 
 ---
 

@@ -1,5 +1,6 @@
 package com.example.burserker.gujeuk.domain.user.presentation.dto.request;
 
+import com.example.burserker.gujeuk.domain.purpose.enums.ReservationTime;
 import com.example.burserker.gujeuk.domain.user.domain.enums.Gender;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
@@ -44,6 +45,8 @@ public record SignupRequest(
         String purpose,
 
         @NotNull(message = "방문시각을 비워둘 수 없습니다.")
-        LocalDateTime visitTime
+        LocalDateTime visitTime,
+
+        ReservationTime reservationTime
 ) {
 }
