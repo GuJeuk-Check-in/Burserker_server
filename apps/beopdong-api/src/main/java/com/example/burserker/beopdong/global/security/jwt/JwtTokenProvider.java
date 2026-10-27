@@ -14,9 +14,11 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import java.util.UUID;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -51,9 +53,14 @@ public class JwtTokenProvider {
         Date now = new Date();
 
         String refreshToken = Jwts.builder()
+                .setSubject(organName)
+                .setId(UUID.randomUUID().toString())
                 .claim(CLAIM_TYPE, REFRESH_TYPE)
                 .setIssuedAt(now)
-                .setExpiration(new java.sql.Timestamp(now.getTime() + jwtProperties.getRefreshExpiration() * MILLISECONDS))
+                .setExpiration(new Date(
+                        now.getTime()
+                                + jwtProperties.getRefreshExpiration() * MILLISECONDS
+                ))
                 .signWith(SignatureAlgorithm.HS512, jwtProperties.getSecretKey())
                 .compact();
 
@@ -61,7 +68,7 @@ public class JwtTokenProvider {
                 RefreshToken.builder()
                         .organName(organName)
                         .token(refreshToken)
-                        .timeToLive((jwtProperties.getRefreshExpiration()))
+                        .timeToLive(jwtProperties.getRefreshExpiration())
                         .build()
         );
 
@@ -69,12 +76,24 @@ public class JwtTokenProvider {
     }
 
     public Authentication getAuthentication(String token) {
-
         Claims claims = getClaims(token);
 
-        UserDetails userDetails = customUserDetailsService.loadUserByUsername(claims.getSubject());
+        if (!ACCESS_TYPE.equals(claims.get(CLAIM_TYPE, String.class))) {
+            throw InvalidTokenException.EXCEPTION;
+        }
 
-        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+        try {
+            UserDetails userDetails =
+                    customUserDetailsService.loadUserByUsername(claims.getSubject());
+
+            return new UsernamePasswordAuthenticationToken(
+                    userDetails,
+                    "",
+                    userDetails.getAuthorities()
+            );
+        } catch (UsernameNotFoundException e) {
+            throw InvalidTokenException.EXCEPTION;
+        }
     }
 
     public Claims getClaims(String token) {
