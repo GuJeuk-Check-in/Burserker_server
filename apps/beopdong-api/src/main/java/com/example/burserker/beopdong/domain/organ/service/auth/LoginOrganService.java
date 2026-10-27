@@ -7,6 +7,7 @@ import com.example.burserker.beopdong.domain.organ.presentation.dto.request.Logi
 import com.example.burserker.beopdong.domain.organ.presentation.dto.response.TokenResponse;
 import com.example.burserker.beopdong.global.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
+import com.example.burserker.beopdong.domain.organ.exception.OrganNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,7 +22,7 @@ public class LoginOrganService {
     @Transactional
     public TokenResponse execute(LoginOrganRequest request) {
         Organ organ = organRepository.findByOrganName(request.organName())
-                .orElseThrow(() -> PasswordMismatchException.EXCEPTION);
+                .orElseThrow(() -> OrganNotFoundException.EXCEPTION);
 
         if (!passwordEncoder.matches(request.password(), organ.getPassword())) {
             throw PasswordMismatchException.EXCEPTION;
