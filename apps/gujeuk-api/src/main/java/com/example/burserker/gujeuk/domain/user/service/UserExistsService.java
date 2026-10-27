@@ -22,7 +22,7 @@ public class UserExistsService {
 
     @Transactional(readOnly = true)
     public UserExistsResponse execute(UserExistsRequest request) {
-        List<User> namesakes = userRepository.findAllByName(request.name()).stream()
+        List<User> namesakes = userRepository.findAllByOrganIdAndName(1L, request.name()).stream()
                 .sorted(Comparator.comparing(User::getId))
                 .toList();
 
@@ -32,7 +32,7 @@ public class UserExistsService {
 
         User target = pickNextInRotation(namesakes, request.name());
 
-        return UserExistsResponse.of(true, target.getId());
+        return UserExistsResponse.of(true, target.getId(), namesakes.size() > 1);
     }
 
     private User pickNextInRotation(List<User> namesakes, String name) {
