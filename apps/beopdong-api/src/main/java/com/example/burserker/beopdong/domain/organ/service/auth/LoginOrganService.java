@@ -2,7 +2,6 @@ package com.example.burserker.beopdong.domain.organ.service.auth;
 
 import com.example.burserker.beopdong.domain.organ.domain.Organ;
 import com.example.burserker.beopdong.domain.organ.domain.repository.OrganRepository;
-import com.example.burserker.beopdong.domain.organ.exception.OrganNotFoundException;
 import com.example.burserker.beopdong.domain.organ.exception.PasswordMismatchException;
 import com.example.burserker.beopdong.domain.organ.presentation.dto.request.LoginOrganRequest;
 import com.example.burserker.beopdong.domain.organ.presentation.dto.response.TokenResponse;
@@ -22,7 +21,7 @@ public class LoginOrganService {
     @Transactional
     public TokenResponse execute(LoginOrganRequest request) {
         Organ organ = organRepository.findByOrganName(request.organName())
-                .orElseThrow(() -> OrganNotFoundException.EXCEPTION);
+                .orElseThrow(() -> PasswordMismatchException.EXCEPTION);
 
         if (!passwordEncoder.matches(request.password(), organ.getPassword())) {
             throw PasswordMismatchException.EXCEPTION;
