@@ -26,5 +26,5 @@ jwt:
   header: Authorization
   prefix: Bearer
   accessExpiration: 7200
-  refreshExpiration: 60400
+  refreshExpiration: 604800
   secretKey: ${JWT_SECRET_KEY}
