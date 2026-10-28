@@ -50,7 +50,7 @@ docker compose --env-file .env --env-file .env.beopdong \
 
 서버 `.env.beopdong`에 `BEOPDONG_JWT_SECRET_KEY`를 UTF-8 기준 64바이트 이상의 무작위 값으로 준비합니다. Compose는 이를 법동 앱의 `JWT_SECRET_KEY`로 전달하며 구즉의 JWT 변수와 분리합니다. 기존 실패 작업 Re-run은 이전 커밋의 Compose를 다시 복사하므로 수정 커밋을 배포해야 합니다.
 
-DB 계정 비밀번호는 env 수정만으로 기존 MySQL에 반영되지 않습니다. DB 버전/계정 변경은 별도 작업입니다. 법동은 `ddl-auto: none`을 유지합니다. 별도의 헬스체크 컨트롤러나 정적 기본 페이지는 없으며 루트 경로는 공개하지 않습니다. 배포 검사는 JWT 키 길이를 먼저 검사한 뒤 앱 계정 SELECT, 컨테이너 실행 여부, Hikari/Spring 기동 로그, 앱에서 Redis PING을 확인합니다. HTTP 응답과 외부 HTTPS는 검사하지 않습니다. 업무 readiness 검사는 아니며 앱 단일 교체로 짧은 중단이 있고 자동 롤백은 없습니다.
+DB 계정 비밀번호는 env 수정만으로 기존 MySQL에 반영되지 않습니다. DB 버전/계정 변경은 별도 작업입니다. 법동은 `ddl-auto: none`을 유지합니다. 별도의 헬스체크 컨트롤러나 정적 기본 페이지는 없으며 루트 경로는 공개하지 않습니다. 배포 검사는 JWT 키가 공백만 있거나 UTF-8 기준 64바이트 미만이면 앱 교체 전에 거부한 뒤 앱 계정 SELECT, 컨테이너 실행 여부, Hikari/Spring 기동 로그, 앱에서 Redis PING을 확인합니다. HTTP 응답과 외부 HTTPS는 검사하지 않습니다. 업무 readiness 검사는 아니며 앱 단일 교체로 짧은 중단이 있고 자동 롤백은 없습니다.
 
 ## 도메인·관측
 
