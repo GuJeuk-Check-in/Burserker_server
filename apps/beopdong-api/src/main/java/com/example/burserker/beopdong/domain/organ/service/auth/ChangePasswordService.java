@@ -19,7 +19,8 @@ public class ChangePasswordService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public void execute(Long organId, ChangePasswordRequest request) {
+    public void execute(ChangePasswordRequest request) {
+        Long organId = 1L;
         Organ organ = organFacade.getOrganById(organId);
 
         if (!passwordEncoder.matches(request.oldPassword(), organ.getPassword())) {

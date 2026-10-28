@@ -25,10 +25,9 @@ public class OrganController {
 
     @PatchMapping
     public void changeOrgan(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody @Valid ChangePasswordRequest request
     ) {
-        changePasswordService.execute(userDetails.organ().getId(), request);
+        changePasswordService.execute(request);
     }
 
 }
