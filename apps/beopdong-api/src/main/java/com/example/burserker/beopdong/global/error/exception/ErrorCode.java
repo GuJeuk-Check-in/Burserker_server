@@ -20,7 +20,9 @@ public enum ErrorCode {
     BAD_REQUEST(400, "잘못된 요청입니다."),
     INTERNAL_SERVER_ERROR(500, "서버 내부 오류가 발생했습니다."),
 
-    PASSWORD_MISMATCH(401, "비밀 번호가 일치 하지 않습니다.");
+    PASSWORD_MISMATCH(401, "비밀 번호가 일치 하지 않습니다."),
+
+    PURPOSE_NOT_FOUND(404, "해당 이용대장이 존재하지 않습니다.");
 
     private final int statusCode;
     private final String ErrorMessage;

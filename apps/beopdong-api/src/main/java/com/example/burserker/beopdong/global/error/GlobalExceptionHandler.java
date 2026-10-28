@@ -29,7 +29,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
 
         ErrorCode errorCode = ErrorCode.BAD_REQUEST;
-        ErrorResponse response = ErrorResponse.of(errorCode, "필수 입력 항목을 기재해 주세요.");
+        ErrorResponse response = ErrorResponse.of(errorCode, "필수 입력 항목을 기재해주세요.");
         e.printStackTrace();
 
         return new ResponseEntity<>(response, HttpStatus.valueOf(errorCode.getStatusCode()));
