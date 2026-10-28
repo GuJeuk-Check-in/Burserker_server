@@ -110,7 +110,7 @@ Q-classes는 `apps/gujeuk-api/src/main/generated/`에 생성됩니다. 커스텀
 ## 기관별 모듈 경계 (#135)
 
 - `apps/gujeuk-api`: 기존 구즉 앱. Java·SQL 내용은 유지하고 경로만 이동했습니다.
-- `apps/beopdong-api`: 법동 독립 실행 앱과 MySQL 연결 설정. 업무 API·Redis·JWT·EC2 배포는 없습니다.
+- `apps/beopdong-api`: 법동 독립 실행 앱과 MySQL 연결 설정. 기관 로그인 API·JWT 인증·Redis 기반 Refresh Token 저장을 제공합니다.
 - `shared/common`: 빈 공통 라이브러리. 기관별 앱을 의존하지 않으며 두 앱도 아직 연결하지 않았습니다.
 - 구즉 실행 클래스는 `apps/gujeuk-api/src/main/java/com/example/burserker/GuJeuckServerApplication.java`입니다. 두 앱은 서로의 런타임 클래스패스를 공유하지 않습니다.
 - 구즉 빌드: `./gradlew :apps:gujeuk-api:bootJar`; 산출물: `apps/gujeuk-api/build/libs/gujeuk-api.jar`.

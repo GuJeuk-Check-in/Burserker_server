@@ -14,8 +14,8 @@
 ## 2026-10-21 #135 최종 환경별 Compose와 Redis 공유 (로컬 구성·미배포)
 
 - 최종 요구는 기존 gujeuk-aws-prod/stag 프로젝트에 각각 app/mysql/redis + beopdong-app/beopdong-mysql 다섯 서비스를 두는 것입니다. 기관별 ops 폴더는 유지하고 법동 파일을 기존 구즉 Compose에 합칩니다. 이전 독립 beopdong 프로젝트 및 스테이징만 배포한다는 설명은 더 이상 적용하지 않습니다.
-- 법동 workflow는 develop→stag(8082), main→prod(8083)에 배포합니다. 서버 디렉터리는 기존 `/home/ubuntu/gujeuk-aws/{stag,prod}`를 사용합니다. 기존 .env와 별도로 .env.beopdong을 준비하며 법동 변수는 BEOPDONG_ 접두어를 사용합니다. 법동 MySQL은 기관·환경별 전용 볼륨을 사용하고 구즉의 기존 세 서비스와 볼륨 설정은 보존합니다.
-- Redis는 환경별 기존 구즉 컨테이너를 공유합니다. 구즉 LettuceConnectionFactory는 기존 DB 0을 유지하고 법동은 Spring Data Redis 설정으로 DB 1을 사용합니다. 논리 DB는 보안·자원·장애 격리가 아니며 FLUSHALL을 사용하지 않습니다. 법동 Redis 업무 기능은 아직 없습니다.
+- 법동 workflow는 develop→stag(8082), main→prod(8083)에 배포합니다. 서버 디렉터리는 기존 `/home/ubuntu/gujeuk-aws/{stag,prod}`를 사용합니다. 기존 .env와 별도로 .env.beopdong을 준비하며 법동 전용 변수는 BEOPDONG_ 접두어를 사용하며, JWT 키는 JWT_SECRET_KEY를 사용합니다. 법동 MySQL은 기관·환경별 전용 볼륨을 사용하고 구즉의 기존 세 서비스와 볼륨 설정은 보존합니다.
+- Redis는 환경별 기존 구즉 컨테이너를 공유합니다. 구즉 LettuceConnectionFactory는 기존 DB 0을 유지하고 법동은 Spring Data Redis 설정으로 DB 1을 사용합니다. 논리 DB는 보안·자원·장애 격리가 아니며 FLUSHALL을 사용하지 않습니다. 법동은 Redis에 Refresh Token을 저장합니다.
 - 법동 배포는 서비스 이름을 지정해 두 서비스만 관리하고 기존 법동 MySQL은 --no-recreate로 유지합니다. 구즉 배포도 app과 기존 의존 서비스만 관리하며 법동 서비스는 건드리지 않습니다. 전체 down/--remove-orphans/볼륨 삭제는 자동 배포에 넣지 않습니다. 같은 호스트의 prod/stag 기동은 공용 flock으로 직렬화합니다.
 - 첫 법동 환경 기동은 가용 RAM 1536MiB 및 디스크 2GiB 기준입니다. 기존 약 4GiB EC2에 두 환경 추가 시 부족 가능성이 크므로 실제 자원 확인·증설을 먼저 진행해야 합니다. swap을 RAM으로 계산하지 않습니다. 실제 서버 SSH 조회는 시간 초과, AWS CLI 로그인은 만료되어 현 상태는 미확인입니다.
 - 검증: Java 17 `./gradlew --offline --no-daemon clean build` 통과(일반 실행에서 DB/Redis 외부 연결 테스트는 opt-in으로 건너뜀). 운영/스테이징 merged config가 각각 5개 서비스이며 기존 구즉 세 서비스와 볼륨의 렌더링 결과가 동일함을 확인했습니다.
@@ -60,7 +60,7 @@
 
 - 루트 Gradle은 `apps:gujeuk-api`, `apps:beopdong-api`, `shared:common`을 관리합니다. Java 17·Spring Boot 3.5.6을 유지합니다.
 - 기존 구즉 코드를 `apps/gujeuk-api/src/`로 이동하고 사용자가 진행한 `com.example.burserker.gujeuk` 패키지 리팩터링을 유지합니다. 구즉 업무 로직·application.yml·마이그레이션 내용은 이번 모듈/DB 구성 작업에서 수정하지 않았습니다. QueryDSL 생성 파일은 컴파일 결과입니다.
-- 법동은 `BeopdongApplication`으로 독립 실행하며 JPA·MySQL 드라이버·DataSource 설정을 추가했습니다. 업무 API·헬스체크·엔티티·마이그레이션·Redis·JWT는 없습니다. 공통 모듈도 빈 상태이고 앱 간 의존성은 없습니다.
+- 법동은 `BeopdongApplication`으로 독립 실행하며 JPA·MySQL 드라이버·DataSource 설정을 추가했습니다. JWT 인증을 제공하며, RefreshToken은 @RedisHash("RefreshToken") 모델로 Redis에 저장합니다. 헬스체크·마이그레이션은 없습니다. JWT 키는 JWT_SECRET_KEY를 사용합니다. 공통 모듈도 빈 상태이고 앱 간 의존성은 없습니다.
 - 실제 로컬 설정은 저장소 밖 `~/env/법동_local.env`에 권한 600으로 보관합니다. 구즉 로컬 MySQL 계정을 사용하되 대상 스키마만 `BeopDong`으로 분리합니다. 비밀값은 추적하지 않고 공개 양식만 커밋합니다.
 - 법동 IntelliJ 비공개 실행 설정 `Beopdong - Local DB`를 추가했습니다. `.idea`와 개인 env는 Git 제외 대상입니다. 로컬 포트는 8082이며 검증용 실행은 별도 임시 포트로 기동 후 종료했습니다.
 - 법동 `ddl-auto: none`으로 자동 DDL을 막습니다. 구즉 Flyway SQL은 법동 모듈의 클래스패스에 포함하지 않습니다. 로컬 MySQL의 lower_case_table_names=2에서 접속 DB 이름은 소문자로 반환되지만 SCHEMA_NAME은 `BeopDong`이며 테스트는 이를 고려합니다.
