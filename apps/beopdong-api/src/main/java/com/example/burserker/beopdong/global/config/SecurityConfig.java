@@ -44,6 +44,7 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/organ").permitAll()
+                        .requestMatchers(HttpMethod.PATCH, "/organ").permitAll()
                         .requestMatchers(
                                 "/check-in",
                                 "/check-in/**"
