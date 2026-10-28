@@ -218,6 +218,8 @@ jobs:
                 and app["environment"]["REDIS_HOST"] == "redis"
                 and str(app["environment"]["REDIS_DATABASE"]) == "1"
             )
+            if len(app["environment"]["JWT_SECRET_KEY"].encode("utf-8")) < 64:
+                sys.exit("법동 JWT 비밀키는 UTF-8 기준 64바이트 이상이어야 합니다.")
             if not valid:
                 sys.exit("Compose의 기관·환경·DB·Redis 설정을 확인하세요.")
             '
@@ -269,10 +271,9 @@ jobs:
             docker compose --env-file .env --env-file .env.beopdong exec -T beopdong-mysql sh -c 'MYSQL_PWD="$MYSQL_PASSWORD" exec mysql --protocol=TCP -h 127.0.0.1 -u"$MYSQL_USER" "$MYSQL_DATABASE" -Nse "SELECT 1"' >/dev/null
             docker compose --env-file .env --env-file .env.beopdong up -d --no-deps beopdong-app
             for i in $(seq 1 40); do
-              STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 3 "http://localhost:${LOCAL_PORT}/" || true)
               RUNNING=$(docker inspect -f '{{.State.Running}}' "$APP")
               APP_LOG=$(docker compose --env-file .env --env-file .env.beopdong logs --no-color --tail 300 beopdong-app 2>&1)
-              if [ "$RUNNING" = "true" ] && { [ "$STATUS" = "404" ] || [ "$STATUS" = "200" ]; } &&
+              if [ "$RUNNING" = "true" ] &&
                 grep -q 'HikariPool-1 - Start completed' <<< "$APP_LOG" &&
                 grep -q 'Started BeopdongApplication' <<< "$APP_LOG"; then
                 # 앱 네트워크에서 공유 Redis까지 실제 TCP/Redis 응답을 확인합니다.
@@ -286,7 +287,7 @@ jobs:
                 exit 0
               fi
               if [ "$i" = "40" ]; then
-                echo 'local startup check FAILED'
+                echo "local startup check FAILED (running: ${RUNNING})"
                 exit 1
               fi
               sleep 3
