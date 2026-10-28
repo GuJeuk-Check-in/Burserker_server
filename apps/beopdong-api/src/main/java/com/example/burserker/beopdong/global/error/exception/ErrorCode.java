@@ -15,7 +15,7 @@ public enum ErrorCode {
 
     ORGAN_NOT_FOUND(404, "해당 기관 계정이 존재하지 않습니다."),
     SAME_OLD_PASSWORD(400, "기존 비밀번호와 동일한 비밀번호로 변경할 수 없습니다."),
-    INVALID_PASSWORD_CONFIRM(401, "비밀번호 확인이 일치하지 않습니다."),
+    INVALID_PASSWORD_CONFIRM(400, "비밀번호 확인이 일치하지 않습니다."),
 
     BAD_REQUEST(400, "잘못된 요청입니다."),
     INTERNAL_SERVER_ERROR(500, "서버 내부 오류가 발생했습니다."),
