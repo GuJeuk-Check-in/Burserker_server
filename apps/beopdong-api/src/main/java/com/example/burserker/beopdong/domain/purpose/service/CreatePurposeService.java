@@ -21,11 +21,13 @@ public class CreatePurposeService {
         Organ organ = organFacade.getOrganById(organId);
 
         int purposeIndex =
-                purposeRepository.findMaxPurposeIndexByOrganId(organId) + 1;
+                purposeRepository.findFirstByOrganIdOrderByPurposeIndexDesc(organId)
+                                .map(purpose -> purpose.getPurposeIndex() + 1)
+                                        .orElse(1);
 
         purposeRepository.save(
                 Purpose.builder()
-                        .purposeName(request.purposeType())
+                        .purposeName(request.purposeName())
                         .purposeIndex(purposeIndex)
                         .organ(organ)
                         .build()
