@@ -23,10 +23,6 @@ public class DeletePurposeService {
     public void execute(Long organId, Long purposeId) {
         Purpose purpose = purposeFacade.getPurposeById(purposeId);
 
-        if (!purpose.getOrgan().getId().equals(organId)) {
-            throw PurposeNotFoundException.EXCEPTION;
-        }
-
         if (purpose.isLocked()) {
             throw new BeopdongException(
                     ErrorCode.BAD_REQUEST, "해당 이용대장은 수정하거나 삭제할 수 없습니다."
