@@ -25,6 +25,9 @@ public class Purpose extends BaseIdEntity {
     @JoinColumn(name = "organ_id", nullable = false)
     private Organ organ;
 
+    @Column(nullable = false)
+    private boolean locked;
+
     public void updatePurpose(String purposeName) {
         this.purposeName = purposeName;
     }

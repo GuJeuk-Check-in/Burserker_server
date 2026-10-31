@@ -4,6 +4,8 @@ import com.example.burserker.beopdong.domain.purpose.domain.Purpose;
 import com.example.burserker.beopdong.domain.purpose.domain.repository.PurposeRepository;
 import com.example.burserker.beopdong.domain.purpose.exception.PurposeNotFoundException;
 import com.example.burserker.beopdong.domain.purpose.facade.PurposeFacade;
+import com.example.burserker.beopdong.global.error.exception.BeopdongException;
+import com.example.burserker.beopdong.global.error.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +25,12 @@ public class DeletePurposeService {
 
         if (!purpose.getOrgan().getId().equals(organId)) {
             throw PurposeNotFoundException.EXCEPTION;
+        }
+
+        if (purpose.isLocked()) {
+            throw new BeopdongException(
+                    ErrorCode.BAD_REQUEST, "해당 이용대장은 수정하거나 삭제할 수 없습니다."
+            );
         }
 
         int purposeIndex = purpose.getPurposeIndex();
