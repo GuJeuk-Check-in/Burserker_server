@@ -2,8 +2,10 @@ package com.example.burserker.beopdong.domain.purpose.presentation;
 
 import com.example.burserker.beopdong.domain.purpose.presentation.dto.request.PurposeMoveRequest;
 import com.example.burserker.beopdong.domain.purpose.service.MovePurposeService;
+import com.example.burserker.beopdong.global.security.auth.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,8 +20,9 @@ public class PurposeController {
 
     @PatchMapping("/move")
     public void movePurpose(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody @Valid PurposeMoveRequest request
     ) {
-        movePurposeService.execute(request);
+        movePurposeService.execute(userDetails.organ().getId(), request);
     }
 }

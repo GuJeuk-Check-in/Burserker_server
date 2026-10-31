@@ -1,5 +1,6 @@
 package com.example.burserker.beopdong.domain.purpose.service;
 
+import com.example.burserker.beopdong.domain.organ.facade.OrganFacade;
 import com.example.burserker.beopdong.domain.purpose.domain.Purpose;
 import com.example.burserker.beopdong.domain.purpose.domain.repository.PurposeRepository;
 import com.example.burserker.beopdong.domain.purpose.exception.PurposeNotFoundException;
@@ -18,9 +19,13 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class MovePurposeService {
     private final PurposeRepository purposeRepository;
+    private final OrganFacade organFacade;
 
     @Transactional
-    public void execute(PurposeMoveRequest purposeMoveRequest) {
+    public void execute(Long organId, PurposeMoveRequest purposeMoveRequest) {
+        organFacade.getOrganWithLock(organId);
+
+
         List<Long> purposeId = purposeMoveRequest.purposeId();
         List<Purpose> purposes = purposeRepository.findAllById(purposeMoveRequest.purposeId());
 

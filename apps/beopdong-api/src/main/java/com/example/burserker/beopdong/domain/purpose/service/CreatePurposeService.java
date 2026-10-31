@@ -18,7 +18,7 @@ public class CreatePurposeService {
 
     @Transactional
     public void execute(Long organId, PurposeRequest request) {
-        Organ organ = organFacade.getOrganById(organId);
+        Organ organ = organFacade.getOrganWithLock(organId);
 
         int purposeIndex =
                 purposeRepository.findFirstByOrganIdOrderByPurposeIndexDesc(organId)
