@@ -45,6 +45,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/organ").permitAll()
                         .requestMatchers(HttpMethod.PATCH, "/organ").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/purpose").permitAll()
                         .requestMatchers(
                                 "/check-in",
                                 "/check-in/**"
