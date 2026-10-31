@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class Purpose extends BaseIdEntity {
 
-    @Column(name = "purpose", nullable = false, length = 30)
+    @Column(nullable = false, length = 30)
     private String purposeName;
 
     @Column(nullable = false)
