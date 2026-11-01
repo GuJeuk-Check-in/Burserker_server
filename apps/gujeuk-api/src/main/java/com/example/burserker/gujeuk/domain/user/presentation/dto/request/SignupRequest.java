@@ -1,6 +1,6 @@
 package com.example.burserker.gujeuk.domain.user.presentation.dto.request;
 
-import com.example.burserker.gujeuk.domain.purpose.enums.ReservationTime;
+import com.example.burserker.gujeuk.domain.purpose.domain.enums.ReservationTime;
 import com.example.burserker.gujeuk.domain.user.domain.enums.Gender;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
