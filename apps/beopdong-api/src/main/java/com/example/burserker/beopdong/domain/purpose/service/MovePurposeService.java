@@ -25,15 +25,14 @@ public class MovePurposeService {
     public void execute(Long organId, PurposeMoveRequest purposeMoveRequest) {
         organFacade.getOrganWithLock(organId);
 
-
         List<Long> purposeId = purposeMoveRequest.purposeId();
-        List<Purpose> purposes = purposeRepository.findAllById(purposeMoveRequest.purposeId());
+        List<Purpose> purposes = purposeRepository.findAllById(purposeId);
 
         if(purposeId.size() != purposes.size()) {
             throw PurposeNotFoundException.EXCEPTION;
         }
 
-        if (purposeId.size() != purposeRepository.count()) {
+        if(purposeId.size() != purposeRepository.count()) {
             throw new BeopdongException(
                     ErrorCode.BAD_REQUEST, "이용대장 전체를 입력해 주세요."
             );
@@ -42,19 +41,8 @@ public class MovePurposeService {
         Map<Long, Purpose> purposeMap = purposes.stream()
                 .collect(Collectors.toMap(Purpose::getId, purpose -> purpose));
 
-        for (int i = 0; i < purposeId.size(); i++) {
+        for(int i = 0; i < purposeId.size(); i++) {
             Purpose purpose = purposeMap.get(purposeId.get(i));
-            int newIndex = i + 1;
-
-            if (purpose.isLocked() && purpose.getPurposeIndex() != newIndex) {
-                throw new BeopdongException(
-                        ErrorCode.BAD_REQUEST, "해당 이용대장의 순서는 변경할 수 없습니다."
-                );
-            }
-        }
-
-        for(int i = 0; i < purposeMoveRequest.purposeId().size(); i++) {
-            Purpose purpose = purposeMap.get(purposeMoveRequest.purposeId().get(i));
 
             purpose.updatePurposeIndex(i + 1);
         }
