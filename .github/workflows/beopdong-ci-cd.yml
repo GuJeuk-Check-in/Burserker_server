@@ -273,8 +273,10 @@ jobs:
             docker compose --env-file .env --env-file .env.beopdong up -d --no-deps beopdong-app
             for i in $(seq 1 40); do
               RUNNING=$(docker inspect -f '{{.State.Running}}' "$APP")
-              APP_LOG=$(docker compose --env-file .env --env-file .env.beopdong logs --no-color --tail 300 beopdong-app 2>&1)
-              if [ "$RUNNING" = "true" ] &&
+              STARTED_AT=$(docker inspect -f '{{.State.StartedAt}}' "$APP")
+              APP_LOG=$(docker logs --since "$STARTED_AT" --tail 300 "$APP" 2>&1)
+              STATUS=$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 "http://127.0.0.1:${LOCAL_PORT}/purpose" || true)
+              if [ "$RUNNING" = "true" ] && [ "$STATUS" = "200" ] &&
                 grep -q 'HikariPool-1 - Start completed' <<< "$APP_LOG" &&
                 grep -q 'Started BeopdongApplication' <<< "$APP_LOG"; then
                 # 앱 네트워크에서 공유 Redis까지 실제 TCP/Redis 응답을 확인합니다.
