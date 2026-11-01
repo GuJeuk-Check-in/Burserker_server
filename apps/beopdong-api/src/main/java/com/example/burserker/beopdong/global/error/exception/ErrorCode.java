@@ -22,7 +22,8 @@ public enum ErrorCode {
 
     PASSWORD_MISMATCH(401, "비밀 번호가 일치 하지 않습니다."),
 
-    PURPOSE_NOT_FOUND(404, "해당 이용대장이 존재하지 않습니다.");
+    PURPOSE_NOT_FOUND(404, "해당 이용대장이 존재하지 않습니다."),
+    PURPOSE_NOT_MODIFIABLE(400, "해당 이용대장은 수정하거나 삭제할 수 없습니다.");
 
     private final int statusCode;
     private final String ErrorMessage;
