@@ -3,8 +3,6 @@ package com.example.burserker.beopdong.domain.purpose.service;
 import com.example.burserker.beopdong.domain.purpose.domain.Purpose;
 import com.example.burserker.beopdong.domain.purpose.facade.PurposeFacade;
 import com.example.burserker.beopdong.domain.purpose.presentation.dto.request.PurposeRequest;
-import com.example.burserker.beopdong.global.error.exception.BeopdongException;
-import com.example.burserker.beopdong.global.error.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
