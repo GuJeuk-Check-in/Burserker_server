@@ -16,7 +16,8 @@ public class OrganFacade {
                 .orElseThrow(() -> OrganNotFoundException.EXCEPTION);
     }
 
-    public Organ getOrganReference(Long organId) {
-        return organRepository.getReferenceById(organId);
+    public Organ getOrganWithLock(Long organId) {
+        return organRepository.findWithLockById(organId)
+                .orElseThrow(() -> OrganNotFoundException.EXCEPTION);
     }
 }
