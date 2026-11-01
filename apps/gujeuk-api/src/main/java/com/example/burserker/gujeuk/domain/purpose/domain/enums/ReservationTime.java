@@ -1,4 +1,4 @@
-package com.example.burserker.gujeuk.domain.purpose.enums;
+package com.example.burserker.gujeuk.domain.purpose.domain.enums;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
