@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.Arrays;
@@ -19,14 +20,14 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class QueryReservationStatusService {
 
-    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
-
     private final ReservationStatusRepository reservationStatusRepository;
 
     @Transactional(readOnly = true)
     public ReservationStatusResponse execute(Long organId) {
-        LocalDate today = LocalDate.now(KST);
-        LocalTime now = LocalTime.now(KST);
+
+        LocalDateTime dateTime = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+        LocalDate today = dateTime.toLocalDate();
+        LocalTime now = dateTime.toLocalTime();
 
         List<ReservationResponse> reservations = reservationStatusRepository
                 .findAllByPurposeOrganIdAndReservationDateOrderByStartTimeAsc(organId, today)
