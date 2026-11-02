@@ -1,6 +1,6 @@
 package com.example.burserker.gujeuk.domain.purpose.domain;
 
-import com.example.burserker.gujeuk.domain.purpose.enums.ReservationTime;
+import com.example.burserker.gujeuk.domain.purpose.domain.enums.ReservationTime;
 import com.example.burserker.gujeuk.domain.user.domain.User;
 import com.example.burserker.gujeuk.global.entity.BaseIdEntity;
 import jakarta.persistence.Column;

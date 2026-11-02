@@ -48,7 +48,9 @@ docker compose --env-file .env --env-file .env.beopdong \
 3. 기존 구즉 Compose와 Redis가 먼저 실행 중이어야 합니다. 새 EC2에서는 구즉을 먼저 배포한 뒤 법동 배포를 실행합니다. GitHub의 `EC2_HOST`, `EC2_USER`, `EC2_SSH_KEY` 및 GHCR 패키지 생성/pull 권한을 확인합니다.
 4. 예전 법동 독립 프로젝트가 실제 기동된 적이 있다면 컨테이너/볼륨 소유 프로젝트 검사에서 중단합니다. 기존 DB를 삭제하거나 자동으로 새 프로젝트에 편입하지 말고, 백업 후 별도 전환 계획을 세웁니다.
 
-DB 계정 비밀번호는 env 수정만으로 기존 MySQL에 반영되지 않습니다. DB 버전/계정 변경은 별도 작업입니다. 법동에는 업무 API·Flyway·헬스체크 엔드포인트가 없고 `ddl-auto: none`을 유지합니다. 배포 검사는 앱 계정 SELECT, Hikari/Spring 기동 및 루트 HTTP 404/200, 앱에서 Redis PING을 확인하는 기동 검사입니다. 업무 readiness 검사는 아니며 앱 단일 교체로 짧은 중단이 있고 자동 롤백은 없습니다.
+서버 `.env.beopdong`에 `BEOPDONG_JWT_SECRET_KEY`를 UTF-8 기준 64바이트 이상의 무작위 값으로 준비합니다. Compose는 이를 법동 앱의 `JWT_SECRET_KEY`로 전달하며 구즉의 JWT 변수와 분리합니다. 기존 실패 작업 Re-run은 이전 커밋의 Compose를 다시 복사하므로 수정 커밋을 배포해야 합니다.
+
+DB 계정 비밀번호는 env 수정만으로 기존 MySQL에 반영되지 않습니다. DB 버전/계정 변경은 별도 작업입니다. 법동은 `ddl-auto: none`을 유지합니다. 별도의 헬스체크 컨트롤러나 정적 기본 페이지는 없으며 루트 경로는 공개하지 않습니다. 배포 검사는 JWT 키가 공백만 있거나 UTF-8 기준 64바이트 미만이면 앱 교체 전에 거부한 뒤 앱 계정 SELECT, 컨테이너 실행 여부, Hikari/Spring 기동 로그, 앱에서 Redis PING을 확인합니다. HTTP 응답과 외부 HTTPS는 검사하지 않습니다. 업무 readiness 검사는 아니며 앱 단일 교체로 짧은 중단이 있고 자동 롤백은 없습니다.
 
 ## 도메인·관측
 
