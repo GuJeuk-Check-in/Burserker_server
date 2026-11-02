@@ -15,9 +15,9 @@ public interface ReservationStatusRepository extends Repository<PurposeReservati
     List<PurposeReservation> findAllByPurposeOrganIdAndReservationDateOrderByStartTimeAsc(
             Long organId, LocalDate reservationDate);
 
-    long countByPurposeOrganIdAndReservationDateAndStartTimeAndPurposeReservationStatusTrue(
+    int countByPurposeOrganIdAndReservationDateAndStartTimeAndPurposeReservationStatusTrue(
             Long organId, LocalDate reservationDate, ReservationTime startTime);
 
     @Query("select count(p) from Purpose p where p.organ.id = :organId and p.reservationStatus = true")
-    long countReservationRequiredPurpose(@Param("organId") Long organId);
+    int countReservationRequiredPurpose(@Param("organId") Long organId);
 }

@@ -35,13 +35,13 @@ public class QueryReservationStatusService {
                 .map(ReservationResponse::from)
                 .toList();
 
-        long inUseCount = findCurrentSlot(now)
+        int inUseCount = findCurrentSlot(now)
                 .map(slot -> reservationStatusRepository
                         .countByPurposeOrganIdAndReservationDateAndStartTimeAndPurposeReservationStatusTrue(
                                 organId, today, slot))
-                .orElse(0L);
+                .orElse(0);
 
-        long totalCount = reservationStatusRepository.countReservationRequiredPurpose(organId);
+        int totalCount = reservationStatusRepository.countReservationRequiredPurpose(organId);
 
         return new ReservationStatusResponse(inUseCount, totalCount - inUseCount, reservations);
     }
