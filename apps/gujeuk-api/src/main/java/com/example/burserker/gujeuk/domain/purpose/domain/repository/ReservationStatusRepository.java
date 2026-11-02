@@ -1,7 +1,7 @@
 package com.example.burserker.gujeuk.domain.purpose.domain.repository;
 
 import com.example.burserker.gujeuk.domain.purpose.domain.PurposeReservation;
-import com.example.burserker.gujeuk.domain.purpose.enums.ReservationTime;
+import com.example.burserker.gujeuk.domain.purpose.domain.enums.ReservationTime;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;

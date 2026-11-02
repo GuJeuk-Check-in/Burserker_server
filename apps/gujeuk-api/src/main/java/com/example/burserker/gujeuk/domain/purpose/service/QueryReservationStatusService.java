@@ -1,7 +1,7 @@
 package com.example.burserker.gujeuk.domain.purpose.service;
 
 import com.example.burserker.gujeuk.domain.purpose.domain.repository.ReservationStatusRepository;
-import com.example.burserker.gujeuk.domain.purpose.enums.ReservationTime;
+import com.example.burserker.gujeuk.domain.purpose.domain.enums.ReservationTime;
 import com.example.burserker.gujeuk.domain.purpose.presentation.dto.response.ReservationResponse;
 import com.example.burserker.gujeuk.domain.purpose.presentation.dto.response.ReservationStatusResponse;
 import lombok.RequiredArgsConstructor;
