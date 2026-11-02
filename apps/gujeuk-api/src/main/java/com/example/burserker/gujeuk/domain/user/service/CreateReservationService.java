@@ -1,4 +1,4 @@
-package com.example.burserker.gujeuk.domain.purpose.service;
+package com.example.burserker.gujeuk.domain.user.service;
 
 import com.example.burserker.gujeuk.domain.purpose.domain.Purpose;
 import com.example.burserker.gujeuk.domain.purpose.domain.PurposeReservation;
@@ -6,7 +6,7 @@ import com.example.burserker.gujeuk.domain.purpose.domain.repository.PurposeRepo
 import com.example.burserker.gujeuk.domain.purpose.domain.repository.PurposeReservationRepository;
 import com.example.burserker.gujeuk.domain.purpose.exception.PurposeNotFoundException;
 import com.example.burserker.gujeuk.domain.purpose.exception.ReservationNotAllowedException;
-import com.example.burserker.gujeuk.domain.purpose.presentation.dto.request.PurposeReservationCreateRequest;
+import com.example.burserker.gujeuk.domain.user.presentation.dto.request.PurposeReservationCreateRequest;
 import com.example.burserker.gujeuk.domain.user.domain.User;
 import com.example.burserker.gujeuk.domain.user.domain.repository.UserRepository;
 import java.time.LocalDateTime;

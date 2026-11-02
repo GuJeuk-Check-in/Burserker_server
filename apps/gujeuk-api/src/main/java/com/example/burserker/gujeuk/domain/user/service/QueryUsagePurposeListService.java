@@ -1,8 +1,8 @@
-package com.example.burserker.gujeuk.domain.purpose.service;
+package com.example.burserker.gujeuk.domain.user.service;
 
 import com.example.burserker.gujeuk.domain.purpose.domain.repository.PurposeRepository;
-import com.example.burserker.gujeuk.domain.purpose.presentation.dto.response.UsagePurposeListResponse;
-import com.example.burserker.gujeuk.domain.purpose.presentation.dto.response.UsagePurposeResponse;
+import com.example.burserker.gujeuk.domain.user.presentation.dto.response.UsagePurposeListResponse;
+import com.example.burserker.gujeuk.domain.user.presentation.dto.response.UsagePurposeResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

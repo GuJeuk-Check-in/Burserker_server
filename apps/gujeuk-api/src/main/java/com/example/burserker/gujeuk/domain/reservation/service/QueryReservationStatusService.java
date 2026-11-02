@@ -1,10 +1,10 @@
-package com.example.burserker.gujeuk.domain.purpose.service;
+package com.example.burserker.gujeuk.domain.reservation.service;
 
 import com.example.burserker.gujeuk.domain.purpose.domain.repository.PurposeRepository;
 import com.example.burserker.gujeuk.domain.purpose.domain.repository.PurposeReservationRepository;
 import com.example.burserker.gujeuk.domain.purpose.domain.enums.ReservationTime;
-import com.example.burserker.gujeuk.domain.purpose.presentation.dto.response.ReservationResponse;
-import com.example.burserker.gujeuk.domain.purpose.presentation.dto.response.ReservationStatusResponse;
+import com.example.burserker.gujeuk.domain.reservation.presentation.dto.response.ReservationResponse;
+import com.example.burserker.gujeuk.domain.reservation.presentation.dto.response.ReservationStatusResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

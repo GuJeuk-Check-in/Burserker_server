@@ -1,8 +1,8 @@
-package com.example.burserker.gujeuk.domain.purpose.presentation;
+package com.example.burserker.gujeuk.domain.reservation.presentation;
 
 
-import com.example.burserker.gujeuk.domain.purpose.presentation.dto.response.ReservationStatusResponse;
-import com.example.burserker.gujeuk.domain.purpose.service.QueryReservationStatusService;
+import com.example.burserker.gujeuk.domain.reservation.service.QueryReservationStatusService;
+import com.example.burserker.gujeuk.domain.reservation.presentation.dto.response.ReservationStatusResponse;
 import com.example.burserker.gujeuk.global.security.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

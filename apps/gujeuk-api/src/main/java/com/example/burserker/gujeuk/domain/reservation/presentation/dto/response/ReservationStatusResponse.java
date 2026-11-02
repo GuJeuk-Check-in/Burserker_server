@@ -1,4 +1,4 @@
-package com.example.burserker.gujeuk.domain.purpose.presentation.dto.response;
+package com.example.burserker.gujeuk.domain.reservation.presentation.dto.response;
 
 import java.util.List;
 
