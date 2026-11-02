@@ -5,7 +5,7 @@
 
 ## 1. 먼저 확인할 사항
 
-- 현재 작업은 `bug/#148-beopdong-CI/CD-bug`의 법동 배포 오류 수정입니다. 서버에 직접 적용하지 않았으며 `develop` 머지 후 자동 배포 결과를 확인해야 합니다.
+- 현재 작업은 `chore/#154-beopdong-CaddySetting`의 법동 도메인 매핑입니다. 저장소 Caddyfile만 수정했으며 서버 프록시에는 아직 적용하지 않았습니다.
 - 2026-10-29 Datadog 법동 스테이징 로그에서 JWT 키 길이 검사 실패와 앱 종료·재기동 반복을 확인했습니다. EC2 전체 CPU 사용량을 모두 법동 때문이라고 단정하지 않습니다.
 - 최근 EC2 SSH 접속은 시간 초과되었습니다. 서버 env, 재시작 횟수, 현재 운영 이미지·메모리·디스크 상태는 재확인이 필요합니다.
 - API·인증의 기준은 컨트롤러·DTO·SecurityConfig입니다. 설명 문서나 과거 배포 결과만으로 현재 상태를 판단하지 않습니다.
@@ -106,12 +106,12 @@
 | 구즉 스테이징 API | `https://aws-stag.oijwef098234.com` |
 | 구즉 프론트 | `https://gujeuk-check-in-fe.pages.dev` |
 | 구즉 스테이징 프론트 | `https://gujeuk-check-in-develop.pages.dev` |
-| 법동 운영 API 예정 도메인 | `https://aws.beopdong-api.oijwef098234.com` |
-| 법동 스테이징 API 예정 도메인 | `https://aws.beopdong-stag-api.oijwef098234.com` |
+| 법동 운영 API 설정 도메인 | `https://aws.beopdong-api.oijwef098234.com` |
+| 법동 스테이징 API 설정 도메인 | `https://aws.beopdong-stag-api.oijwef098234.com` |
 | 게임 API | `https://game-api.oijwef098234.com` |
 | Caddy | `/home/ubuntu/gujeuk-aws/proxy` |
 
-- Caddy는 도메인별로 호스트 앱 포트에 전달합니다. 저장소 구성은 `ops/gujeuk/Caddyfile`, `docker-compose.proxy.yml`에 있으며 앱 CI/CD가 프록시나 DNS를 자동 변경하지 않습니다.
+- Caddy는 도메인별로 호스트 앱 포트에 전달합니다. 저장소 `ops/gujeuk/Caddyfile`은 법동 운영 8083, 스테이징 8082도 연결하며 앱 CI/CD가 프록시나 DNS를 자동 변경하지 않습니다. 서버 적용과 다단계 서브도메인의 Cloudflare 인증서 설정은 별도로 확인해야 합니다.
 - 과거 서버에는 제거된 `api.taisu.site`, `api-stag.taisu.site` 별칭이 남아 있었습니다. 현재 서버 설정과 법동 도메인 연결 완료 여부는 별도 확인이 필요합니다.
 - Datadog 대시보드에서 실제 컨테이너 지표·법동 로그를 확인했습니다. 구즉 이미지에는 Java tracer와 Agent 연결 설정이 있지만 법동 Dockerfile에는 tracer가 없습니다. 컨테이너 지표 수집과 법동 APM 연결을 구분합니다.
 - Prometheus/Grafana/monitor-bot은 과거 구성입니다. 관련 파일 정리가 서버 컨테이너 중지·삭제를 의미하지 않으며 현재 실행 여부는 별도 확인합니다.
