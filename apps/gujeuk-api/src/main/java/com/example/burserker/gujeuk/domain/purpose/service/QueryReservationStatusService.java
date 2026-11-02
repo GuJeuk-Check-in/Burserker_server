@@ -1,6 +1,7 @@
 package com.example.burserker.gujeuk.domain.purpose.service;
 
-import com.example.burserker.gujeuk.domain.purpose.domain.repository.ReservationStatusRepository;
+import com.example.burserker.gujeuk.domain.purpose.domain.repository.PurposeRepository;
+import com.example.burserker.gujeuk.domain.purpose.domain.repository.PurposeReservationRepository;
 import com.example.burserker.gujeuk.domain.purpose.domain.enums.ReservationTime;
 import com.example.burserker.gujeuk.domain.purpose.presentation.dto.response.ReservationResponse;
 import com.example.burserker.gujeuk.domain.purpose.presentation.dto.response.ReservationStatusResponse;
@@ -20,7 +21,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class QueryReservationStatusService {
 
-    private final ReservationStatusRepository reservationStatusRepository;
+    private final PurposeReservationRepository purposeReservationRepository;
+    private final PurposeRepository purposeRepository;
 
     @Transactional(readOnly = true)
     public ReservationStatusResponse execute(Long organId) {
@@ -29,19 +31,19 @@ public class QueryReservationStatusService {
         LocalDate today = dateTime.toLocalDate();
         LocalTime now = dateTime.toLocalTime();
 
-        List<ReservationResponse> reservations = reservationStatusRepository
+        List<ReservationResponse> reservations = purposeReservationRepository
                 .findAllByPurposeOrganIdAndReservationDateOrderByStartTimeAsc(organId, today)
                 .stream()
                 .map(ReservationResponse::from)
                 .toList();
 
         int inUseCount = findCurrentSlot(now)
-                .map(slot -> reservationStatusRepository
+                .map(slot -> purposeReservationRepository
                         .countByPurposeOrganIdAndReservationDateAndStartTimeAndPurposeReservationStatusTrue(
                                 organId, today, slot))
                 .orElse(0);
 
-        int totalCount = reservationStatusRepository.countReservationRequiredPurpose(organId);
+        int totalCount = purposeRepository.countByOrganIdAndReservationStatusTrue(organId);
 
         return new ReservationStatusResponse(inUseCount, totalCount - inUseCount, reservations);
     }
