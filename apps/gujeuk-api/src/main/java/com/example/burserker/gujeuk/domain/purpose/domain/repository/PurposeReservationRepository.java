@@ -18,6 +18,9 @@ public interface PurposeReservationRepository extends JpaRepository<PurposeReser
     int countByPurposeOrganIdAndReservationDateAndStartTimeAndPurposeReservationStatusTrue(
             Long organId, LocalDate reservationDate, ReservationTime startTime);
 
+    int countByPurposeOrganIdAndReservationDateAndStartTime(
+            Long organId, LocalDate reservationDate, ReservationTime startTime);
+
     @Query("SELECT r.startTime FROM PurposeReservation r "
             + "WHERE r.purpose.id = :purposeId AND r.reservationDate = :reservationDate")
     List<ReservationTime> findReservedTimes(

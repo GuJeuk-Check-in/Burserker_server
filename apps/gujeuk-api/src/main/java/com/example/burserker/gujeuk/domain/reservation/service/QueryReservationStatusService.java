@@ -37,15 +37,24 @@ public class QueryReservationStatusService {
                 .map(ReservationResponse::from)
                 .toList();
 
-        int inUseCount = findCurrentSlot(now)
+
+        Optional<ReservationTime> currentSlot = findCurrentSlot(now);
+
+        int inUseCount = currentSlot
+                .map(slot -> purposeReservationRepository
+                        .countByPurposeOrganIdAndReservationDateAndStartTime(organId, today, slot))
+                .orElse(0);
+
+
+        int reservedRequiredCount = currentSlot
                 .map(slot -> purposeReservationRepository
                         .countByPurposeOrganIdAndReservationDateAndStartTimeAndPurposeReservationStatusTrue(
                                 organId, today, slot))
                 .orElse(0);
 
-        int totalCount = purposeRepository.countByOrganIdAndReservationStatusTrue(organId);
+        int requiredCount = purposeRepository.countByOrganIdAndReservationStatusTrue(organId);
 
-        return new ReservationStatusResponse(inUseCount, totalCount - inUseCount, reservations);
+        return new ReservationStatusResponse(inUseCount, requiredCount - reservedRequiredCount, reservations);
     }
 
     private Optional<ReservationTime> findCurrentSlot(LocalTime now) {

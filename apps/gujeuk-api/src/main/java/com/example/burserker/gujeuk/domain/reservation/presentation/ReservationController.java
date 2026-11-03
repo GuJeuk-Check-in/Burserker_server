@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping ("/reservation")
-public class ReservationStatusController {
+public class ReservationController {
     private final QueryReservationStatusService queryReservationStatusService;
 
     @GetMapping
