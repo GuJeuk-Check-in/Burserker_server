@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public interface PurposeReservationRepository extends JpaRepository<PurposeReservation, Long> {
     @EntityGraph(attributePaths = "purpose")
@@ -25,5 +26,7 @@ public interface PurposeReservationRepository extends JpaRepository<PurposeReser
             + "WHERE r.purpose.id = :purposeId AND r.reservationDate = :reservationDate")
     List<ReservationTime> findReservedTimes(
             @Param("purposeId") Long purposeId, @Param("reservationDate") LocalDate reservationDate);
+
+    Optional<PurposeReservation> findByIdAndPurposeOrganId(Long id, Long organId);
 }
 

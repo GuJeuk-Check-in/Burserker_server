@@ -29,6 +29,7 @@ public enum ErrorCode {
 
     RESERVATION_NOT_ALLOWED(400, "예약할 수 없는 방문 목적입니다."),
     RESERVATION_SLOT_UNAVAILABLE(409, "이미 예약된 시간입니다."),
+    RESERVATION_NOT_FOUND(404, "존재하지 않는 예약입니다."),
 
     USER_NOT_FOUND(404, "해당 유저가 존재 하지 않습니다."),
     PASSWORD_MISMATCH(401, "비밀 번호가 일치 하지 않습니다."),
