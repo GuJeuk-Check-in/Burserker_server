@@ -1,11 +1,11 @@
-package com.example.burserker.gujeuk.domain.purpose.presentation;
+package com.example.burserker.gujeuk.domain.user.presentation;
 
-import com.example.burserker.gujeuk.domain.purpose.presentation.dto.request.PurposeReservationCreateRequest;
-import com.example.burserker.gujeuk.domain.purpose.presentation.dto.response.AvailableReservationTimeListResponse;
-import com.example.burserker.gujeuk.domain.purpose.presentation.dto.response.UsagePurposeListResponse;
-import com.example.burserker.gujeuk.domain.purpose.service.CreateReservationService;
-import com.example.burserker.gujeuk.domain.purpose.service.QueryAvailableReservationTimeListService;
-import com.example.burserker.gujeuk.domain.purpose.service.QueryUsagePurposeListService;
+import com.example.burserker.gujeuk.domain.user.presentation.dto.request.PurposeReservationCreateRequest;
+import com.example.burserker.gujeuk.domain.user.presentation.dto.response.AvailableReservationTimeListResponse;
+import com.example.burserker.gujeuk.domain.user.presentation.dto.response.UsagePurposeListResponse;
+import com.example.burserker.gujeuk.domain.user.service.CreateReservationService;
+import com.example.burserker.gujeuk.domain.user.service.QueryAvailableReservationTimeListService;
+import com.example.burserker.gujeuk.domain.user.service.QueryUsagePurposeListService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/user/reservation")
-public class ReservationController {
+public class UserReservationController {
     private final CreateReservationService createReservationService;
     private final QueryUsagePurposeListService queryUsagePurposeListService;
     private final QueryAvailableReservationTimeListService queryAvailableReservationTimeListService;

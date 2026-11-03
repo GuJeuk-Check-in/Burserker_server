@@ -1,4 +1,4 @@
-package com.example.burserker.gujeuk.domain.purpose.service;
+package com.example.burserker.gujeuk.domain.user.service;
 
 import com.example.burserker.gujeuk.domain.purpose.domain.Purpose;
 import com.example.burserker.gujeuk.domain.purpose.domain.enums.ReservationTime;
@@ -6,7 +6,7 @@ import com.example.burserker.gujeuk.domain.purpose.domain.repository.PurposeRepo
 import com.example.burserker.gujeuk.domain.purpose.domain.repository.PurposeReservationRepository;
 import com.example.burserker.gujeuk.domain.purpose.exception.PurposeNotFoundException;
 import com.example.burserker.gujeuk.domain.purpose.exception.ReservationNotAllowedException;
-import com.example.burserker.gujeuk.domain.purpose.presentation.dto.response.AvailableReservationTimeListResponse;
+import com.example.burserker.gujeuk.domain.user.presentation.dto.response.AvailableReservationTimeListResponse;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.EnumSet;

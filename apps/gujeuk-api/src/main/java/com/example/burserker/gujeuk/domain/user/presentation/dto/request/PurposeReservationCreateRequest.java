@@ -1,4 +1,4 @@
-package com.example.burserker.gujeuk.domain.purpose.presentation.dto.request;
+package com.example.burserker.gujeuk.domain.user.presentation.dto.request;
 
 import com.example.burserker.gujeuk.domain.purpose.domain.enums.ReservationTime;
 import jakarta.validation.constraints.Min;
