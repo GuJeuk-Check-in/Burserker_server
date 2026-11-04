@@ -20,5 +20,4 @@ public class UserExistsService {
 
         return new UserExistsResponse(userId);
     }
-
 }
