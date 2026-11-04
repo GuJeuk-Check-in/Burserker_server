@@ -1,4 +1,4 @@
-package com.example.burserker.beopdong.domain.user.presentation.dto.request;
+package com.example.burserker.beopdong.domain.checkin.presentation.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 

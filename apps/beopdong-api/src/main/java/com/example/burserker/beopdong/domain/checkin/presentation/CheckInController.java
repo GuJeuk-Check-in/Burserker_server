@@ -1,10 +1,10 @@
 package com.example.burserker.beopdong.domain.checkin.presentation;
 
-import com.example.burserker.beopdong.domain.user.presentation.dto.request.UserExistsRequest;
+import com.example.burserker.beopdong.domain.checkin.presentation.dto.request.UserExistsRequest;
 import com.example.burserker.beopdong.domain.user.presentation.dto.request.UserSignUpRequest;
-import com.example.burserker.beopdong.domain.user.presentation.dto.response.UserExistsResponse;
+import com.example.burserker.beopdong.domain.checkin.presentation.dto.response.UserExistsResponse;
 import com.example.burserker.beopdong.domain.user.presentation.dto.response.UserSignUpResponse;
-import com.example.burserker.beopdong.domain.user.service.UserExistsService;
+import com.example.burserker.beopdong.domain.checkin.service.UserExistsService;
 import com.example.burserker.beopdong.domain.user.service.UserSignUpService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
