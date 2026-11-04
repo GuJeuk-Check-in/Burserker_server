@@ -7,6 +7,7 @@ import lombok.Builder;
 
 @Builder
 public record UserListResponse(
+        Long id,
         String name,
         Gender gender,
         String phone,
@@ -16,6 +17,7 @@ public record UserListResponse(
 ) {
     public static UserListResponse from(User user) {
         return UserListResponse.builder()
+                .id(user.getId())
                 .name(user.getName())
                 .gender(user.getGender())
                 .phone(user.getPhone())
