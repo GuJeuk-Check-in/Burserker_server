@@ -9,6 +9,10 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import com.example.burserker.beopdong.domain.user.presentation.dto.request.UserSignUpRequest;
+import org.springframework.validation.FieldError;
+
+import java.util.List;
 
 @Slf4j
 @RestControllerAdvice
@@ -26,13 +30,57 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
-
+    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(
+            MethodArgumentNotValidException e
+    ) {
         ErrorCode errorCode = ErrorCode.BAD_REQUEST;
-        ErrorResponse response = ErrorResponse.of(errorCode, "필수 입력 항목을 기재해주세요.");
-        e.printStackTrace();
+        String description = "필수 입력 항목을 기재해 주세요.";
 
-        return new ResponseEntity<>(response, HttpStatus.valueOf(errorCode.getStatusCode()));
+        if(e.getParameter().getParameterType() == UserSignUpRequest.class) {
+            errorCode = ErrorCode.SIGN_UP_REQUIRED;
+            description = "빈칸을 채워주세요.";
+
+            List<FieldError> errors = e.getBindingResult().getFieldErrors();
+
+            boolean requiredMissing = errors.stream()
+                    .anyMatch(error ->
+                            "NotBlank".equals(error.getCode()) ||
+                                    "NotNull".equals(error.getCode()) ||
+                                    "NotEmpty".equals(error.getCode())
+                    );
+
+            if(!requiredMissing) {
+                for(FieldError error : errors) {
+                    if("birthYMD".equals(error.getField()) &&
+                            "PastOrPresent".equals(error.getCode())) {
+                        errorCode = ErrorCode.SIGN_UP_BIRTH_INVALID;
+                        description = "생년월일을 다시 확인해 주세요.";
+                        break;
+                    }
+
+                    if("phone".equals(error.getField()) &&
+                            "Pattern".equals(error.getCode())) {
+                        errorCode = ErrorCode.SIGN_UP_PHONE_INVALID;
+                        description = "전화번호를 다시 확인해 주세요.";
+                        break;
+                    }
+
+                    if("grade".equals(error.getField()) &&
+                            ("Min".equals(error.getCode()) || "Max".equals(error.getCode()))) {
+                        errorCode = ErrorCode.SIGN_UP_GRADE_INVALID;
+                        description = "학년을 다시 확인해 주세요.";
+                        break;
+                    }
+                }
+            }
+        }
+
+        ErrorResponse response = ErrorResponse.of(errorCode, description);
+
+        return new ResponseEntity<>(
+                response,
+                HttpStatus.valueOf(errorCode.getStatusCode())
+        );
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
@@ -60,4 +108,6 @@ public class GlobalExceptionHandler {
                 HttpStatus.INTERNAL_SERVER_ERROR
         );
     }
+
+
 }
