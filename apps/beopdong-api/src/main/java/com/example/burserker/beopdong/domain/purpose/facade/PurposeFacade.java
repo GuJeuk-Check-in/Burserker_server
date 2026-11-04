@@ -6,6 +6,8 @@ import com.example.burserker.beopdong.domain.purpose.exception.PurposeNotFoundEx
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 @RequiredArgsConstructor
 public class PurposeFacade {
@@ -15,4 +17,15 @@ public class PurposeFacade {
         return purposeRepository.findById(purposeId)
                 .orElseThrow(() -> PurposeNotFoundException.EXCEPTION);
     }
+
+    public List<Purpose> getPurposesByIds(List<Long> purposeIds) {
+        List<Purpose> purposes = purposeRepository.findAllById(purposeIds);
+
+        if(purposeIds.size() != purposes.size()) {
+            throw PurposeNotFoundException.EXCEPTION;
+        }
+
+        return purposes;
+    }
+
 }
