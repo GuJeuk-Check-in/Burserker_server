@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class SchoolGradeService {
+
     public int validateGrade(SchoolType schoolType, int grade) {
         int maxGrade = switch(schoolType) {
             case ELEMENTARY -> 6;
@@ -15,10 +16,7 @@ public class SchoolGradeService {
         };
 
         if(maxGrade == 0 || grade < 1 || grade > maxGrade) {
-            throw new BeopdongException(
-                    ErrorCode.SIGN_UP_GRADE_INVALID,
-                    "학년을 다시 확인해 주세요."
-            );
+            throw new BeopdongException(ErrorCode.SIGN_UP_GRADE_INVALID);
         }
 
         return grade;
