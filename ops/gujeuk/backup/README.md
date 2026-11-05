@@ -1,89 +1,61 @@
 # 구즉 운영 DB → Notion 자동 백업
 
-EC2의 systemd가 실행한다. 노트북 전원·로그인·SSH 연결 유지에 의존하지 않는다. Notion에는 데이터베이스 하나와 날짜별 페이지 하나를 유지한다. Python 3.10 이상과 Docker가 필요하며 추가 Python 패키지는 없다.
+EC2가 구즉 `gujeuk_prod`만 전체 덤프하여 Notion 날짜별 페이지에 첨부한다. Python 표준 라이브러리와 Docker를 사용하며 노트북·SSH 연결 유지가 필요 없다.
 
-## 일정 (Asia/Seoul)
+## 실행 흐름
 
-| 시각 | 작업 |
+`systemd timer → service → backup.py → mysqldump → EC2 파일 → Notion API`
+
+| 한국 시간 | 호출 | 작업 |
+| --- | --- | --- |
+| 00:00 | `backup.py page` | 날짜별 페이지와 본문 양식 생성 |
+| 01:00~19:00 매 정각 | `backup.py hourly` | 해당 시각의 전체 덤프 생성·첨부 |
+| 19:30 | `backup.py dump` | 최종 전체 덤프 생성·첨부 |
+| 매 5분 | `backup.py retry` | 기존 파일 업로드 재시도. 새 덤프는 생성하지 않음 |
+
+`.timer`의 `OnCalendar`가 실행 시각을 정하고 `.service`의 `ExecStart`가 Python을 실행한다. `systemctl enable --now`로 타이머를 켜면 재부팅 후에도 예약이 유지된다. 놓친 과거 시점의 DB 상태를 소급 생성하지 않는다.
+
+## 파일과 페이지
+
+| 파일 | 역할 |
 | --- | --- |
-| 00:00 | 당일 페이지 생성 |
-| 01:00~19:00 매 정각 | 구즉 운영 DB만 전체 덤프·검증·업로드 (19개) |
-| 19:30 | 최종 전체 덤프·검증·업로드 (1개) |
-| 매 5분 | 기존 파일·첨부 상태 및 누락 재확인, 미완료 업로드 재시도. 새 덤프 생성 없음 |
+| `backup.py` | 일정별 작업, 로컬 파일, 날짜별 페이지 양식과 파일 첨부 |
+| `backup_core.py` | MySQL 덤프·압축, Notion HTTP 요청 |
+| `configure.py` | Notion 토큰 숨김 입력과 연결 확인 |
+| `install.sh` | 프로그램 복사와 systemd 타이머 설치 |
+| `systemd/` | 실행 명령과 예약 시각 |
 
-시각은 시작 시각이며 완료 시각도 별도로 기록한다. 같은 슬롯의 성공 파일은 재사용하므로 업로드 실패로 기존 백업을 덮어쓰지 않는다. 재부팅으로 놓친 예약은 재가동 때 한 번 실행한다. 시간별 작업은 현재 시각이 01:00~19:29인 경우 현재 시간 슬롯만 생성하고, 최종 작업은 당일 19:30 이후일 때만 생성한다. 과거 시점의 데이터를 소급 생성하지 않는다. 예를 들어 22:00 재기동은 22:00 기준 최종 덤프를 남길 수 있지만 놓친 정각 파일을 만들어 내지는 않는다.
+서버 저장 위치는 `/home/ubuntu/gujeuk-notion-backup/data/YYYY-MM-DD/`다. `mysqldump --single-transaction --databases gujeuk_prod`로 SQL을 추출하고 `.sql.gz`로 압축한다. 완료된 파일과 JSON 기록을 남긴 뒤 Notion API에 전송한다. 업로드가 실패하면 파일은 EC2에 남고 다음 재시도에서 사용한다. 운영 데이터·다른 DB는 변경하지 않는다.
 
-정상 일정은 하루 20개의 독립 전체 덤프다. 19:30 이후 슬롯이나 업로드 누락이 있으면 Notion 상태를 오류로 표시하고 빠진 슬롯을 기록한다. 설치 첫날의 이미 지난 시각도 누락으로 표시될 수 있다. 다음날에는 전날의 미완료 상태도 정리한다. 오류 표시는 외부 알림 전송 기능을 뜻하지 않는다.
+페이지 제목은 `YYYY.MM.DD / [PROD]Gujeuk_DB`다. 본문 양식은 `page_template()`에서 생성하며, 최종 파일은 ‘전체 DUMP 파일’ 아래에, 매시간 파일은 ‘시간대별 DUMP 파일 → HH:00’ 아래에 첨부한다. 오류는 본문 마지막 ‘오류 내용’에 기록한다. Notion의 수동 템플릿 버튼에 의존하지 않는다.
 
-한 시간 간격 스냅샷은 무손실 보장이 아니다. 마지막 스냅샷 이후의 변경은 포함되지 않고, 19:30 이후에는 다음 날 01:00까지 간격이 길다. 복구하려는 시점 이전의 전체 덤프 하나로 그 스냅샷 상태를 복원한다. 임의 시점 복구(PITR)는 제공하지 않는다.
+DB 속성은 이름·백업일·환경·마지막 백업 시각·검증·시간별 덤프 파일·최종 덤프 파일을 유지한다. 상태·시간별 덤프 수·최종 덤프 시각·오류 내용 속성은 사용하지 않는다.
 
-## 범위와 운영 영향
+## 설치
 
-- 덤프는 `config.json`의 단일 DB만 대상이며 기본값은 `gujeuk_prod`다. 다른 DB와 binlog는 수집하지 않는다.
-- 운영 데이터 INSERT/UPDATE/DELETE·복원·컨테이너 재시작·binlog 회전을 하지 않는다. 덤프 읽기로 DB CPU·디스크·네트워크 부하는 발생할 수 있다.
-- `--single-transaction --quick`으로 InnoDB 일관 스냅샷을 만든다. 복구 좌표 옵션과 전역 읽기 잠금은 요청하지 않는다. 비 InnoDB 테이블은 거부하며, 배포에 따른 DDL은 기존 `.deploy.lock`과 직렬화한다. 수동 DDL도 백업과 겹치지 않도록 운영해야 한다.
-- 원본의 binlog 설정·보존 기간을 변경하지 않으며 별도 mysqlbinlog 컨테이너도 필요 없다.
-
-## 최초 설치
-
-Notion 개인 워크스페이스에 콘텐츠 읽기·삽입·수정 권한의 내부 연결을 만들고 백업 상위 페이지에만 접근을 허용한다. Notion 로그인/MCP 연결은 EC2 토큰을 대신하지 않는다. 토큰은 GitHub·채팅·페이지 본문에 입력하지 않는다.
-
-검토한 코드를 EC2에 복사한 뒤 `ubuntu` 사용자로 실행한다.
+Notion 내부 연결에 백업 상위 페이지 접근 권한을 주고 검토한 코드를 EC2에 복사한다. 토큰과 실제 설정은 Git에 넣지 않는다.
 
 ```bash
 bash ops/gujeuk/backup/install.sh --prepare
-docker pull mysql:8.0
-python3 /home/ubuntu/gujeuk-notion-backup/configure.py
-```
-
-데이터 소스 ID(`collection://` 뒤 UUID)를 입력하고 연결 토큰을 숨김 입력한다. 부모 페이지·데이터베이스 ID와 다르다. 실제 접근과 파일 업로드 한도를 확인한 뒤 권한 600 설정·토큰 파일을 저장한다. 기존 토큰을 덮어쓰거나 타이머를 활성화하지 않는다.
-
-데이터베이스 ID를 알고 있으면 `--database-id <UUID>`로 지정해 데이터 소스 ID 입력을 생략할 수 있다. 토큰 인증 → 해당 데이터베이스 접근 → API가 반환한 단일 데이터 소스 선택 → 스키마 확인 순서로 검사한다. 데이터 소스가 여러 개이면 임의 선택하지 않고 명시적 ID 입력을 요구한다. 인증된 연결 이름과 성공한 검사 단계만 출력하며 토큰은 출력하지 않는다.
-
-Mac에서 먼저 토큰을 등록할 때 Python의 기본 CA 경로가 비어 있으면 HTTPS 인증서 검증이 실패할 수 있다. 이 경우 macOS의 기본 CA 파일을 지정해 실행한다. 인증서 검증은 유지하며, 실패한 설정 시도의 임시 토큰은 삭제되므로 다시 숨김 입력해야 한다.
-
-```bash
-SSL_CERT_FILE=/etc/ssl/cert.pem python3 ops/gujeuk/backup/configure.py --root ~/Documents/구즉/db-backup-166/runtime --database-id <백업_데이터베이스_UUID>
-```
-
-```bash
+python3 /home/ubuntu/gujeuk-notion-backup/configure.py --database-id <백업_DB_UUID>
 cd /home/ubuntu/gujeuk-notion-backup
-python3 backup.py check
 python3 backup.py bootstrap
-python3 verify_restore.py data/YYYY-MM-DD/bootstrap.json
-python3 backup.py retry
 bash install.sh --enable
 systemctl list-timers 'gujeuk-backup-*' --no-pager
 ```
 
-`YYYY-MM-DD`를 실제 날짜로 바꾼다. `bootstrap`은 설치 검증용 최초 덤프이며 예약된 시간별·최종 덤프와 별개다. `verify_restore.py`는 네트워크와 게시 포트가 없는 일회용 MySQL에 덤프를 복원하고 모든 테이블을 조회한다. 임시 컨테이너와 그 볼륨만 삭제하며 운영 DB에 복원하지 않는다. 추가 RAM 768MiB와 복원 데이터만큼 디스크가 필요하므로 운영 서버 자원이 부족하면 별도 장비에서 검증한다.
+`install.sh`도 대상 디렉터리에 복사해서 실행한다. 기존 설치 업데이트는 코드만 교체하고 `config.json`, `private/notion-token`, `data/`는 유지한다. DB·페이지 확인 중에는 타이머를 잠시 멈추고 진행 중인 백업과 배포가 끝난 후 교체한다. 머지만으로 서버 코드가 바뀌지는 않는다.
 
-실제 덤프 첨부와 격리 복원 확인 기록이 없으면 설치 프로그램은 활성화를 거부한다. 코드 머지만으로 타이머가 설치되거나 실행되지 않는다. 서버에 최초 한 번 설치해야 한다.
-
-## 보관과 실패 처리
-
-- `private/notion-token`: 소유 사용자 전용 권한 600. 백업 폴더는 권한 700이다.
-- `data/YYYY-MM-DD/`: 완료 덤프와 슬롯별 JSON 메타데이터. 종료 코드·mysqldump 완료 표식·gzip CRC·크기·SHA-256 확인 후 원자적으로 확정한다.
-- 네트워크 요청 전에 로컬 덤프를 생성한다. Notion 장애 시 로컬 완료 파일은 남고 매 5분 재전송한다. 파일명+SHA-256 표식을 조회해 응답이 끊긴 첨부의 중복을 피한다.
-- 파일명·실제 시작/완료 시각·해시는 Notion 페이지 본문에도 남긴다. 각 시간별 파일과 최종 파일은 별도 파일 속성에 모은다. `검증=복원 확인`은 해당 날짜의 모든 보관 파일을 실제 복원 검사한 경우에만 표시한다.
-- 미완료 업로드 세션은 만료 후 다시 전송한다. 무료/유료 워크스페이스 파일 크기 한도를 봇 응답으로 확인하며 초과를 성공으로 처리하지 않는다. gzip은 암호화가 아니므로 백업 페이지 공유 범위를 제한한다.
-- 기본값으로 백업을 자동 삭제하지 않는다. 디스크 여유가 512MiB 또는 예상 덤프 용량의 두 배보다 작으면 중단한다. 보관 용량·업로드 실패를 감시해야 한다.
-- 수집 실패는 systemd가 5분 간격으로 제한 재시도한다. 원인 해결 뒤 해당 시간 안에 `hourly` 또는 19:30 이후 `dump`를 재실행할 수 있다. 이미 지나간 스냅샷은 복원할 수 없으며 업로드 재시도가 새 수집을 대신하지 않는다.
-- EC2 전체가 멈추면 Notion에 실패를 기록할 수 없다. 외부 누락 감시는 별도 구성해야 한다.
+## 확인과 한계
 
 ```bash
-journalctl -u 'gujeuk-backup@*' -n 50 --no-pager
-systemctl --failed
-sudo systemctl start gujeuk-backup@hourly.service
-sudo systemctl start gujeuk-backup@retry.service
-```
-
-## 검증
-
-```bash
-cd ops/gujeuk/backup
+journalctl -u 'gujeuk-backup@*' -n 30 --no-pager
 python3 -m unittest -v test_backup.py
 python3 test_restore.py
 ```
 
-단위 테스트는 동일 슬롯 재사용·실패 파일 거부·날짜 경계·시간 제한·누락 표시·Notion 장애 중 로컬 보존·중복 첨부 방지를 확인한다. 실제 Docker 테스트는 같은 인스턴스에 별도 DB와 표식을 만든 뒤 대상 DB의 시간별·최종 덤프만 독립 복원하고 다른 DB가 포함되지 않는지 확인한다. 이는 운영 데이터의 실제 복원 검증을 대신하지 않는다.
+완료 파일 재사용·실패 파일 제외·로컬 보존·첨부 중복 방지를 유지한다. 실제 복원 테스트는 일회용 MySQL만 사용한다. 운영 서버에 자동 복원하거나 매시간 복원 검증용 컨테이너를 띄우지 않는다.
+
+Notion 워크스페이스의 파일 크기 한도를 넘으면 업로드 오류를 남기고 EC2 파일을 보존한다. 분할 업로드·binlog·자동 삭제·외부 장애 알림은 구현하지 않는다. 토큰은 권한 600, 백업 디렉터리는 700으로 보관하며 gzip은 암호화가 아니다.
+
+전체 덤프 하나로 해당 시점의 상태를 복구한다. 마지막 백업 이후 변경은 포함되지 않으며 19:30부터 다음 날 01:00까지는 5시간 30분 공백이 있다.
