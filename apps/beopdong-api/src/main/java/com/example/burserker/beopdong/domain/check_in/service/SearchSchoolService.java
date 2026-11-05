@@ -1,11 +1,12 @@
-package com.example.burserker.beopdong.domain.user.service;
+package com.example.burserker.beopdong.domain.check_in.service;
 
-import com.example.burserker.beopdong.domain.user.client.NeisSchoolClient;
+import com.example.burserker.beopdong.domain.check_in.client.NeisSchoolClient;
 import com.example.burserker.beopdong.domain.user.domain.enums.SchoolType;
-import com.example.burserker.beopdong.domain.user.presentation.dto.response.SchoolResponse;
-import com.example.burserker.beopdong.domain.user.presentation.dto.response.SchoolSearchResponse;
+import com.example.burserker.beopdong.domain.check_in.presentation.dto.response.SchoolResponse;
+import com.example.burserker.beopdong.domain.check_in.presentation.dto.response.SchoolSearchResponse;
 import com.example.burserker.beopdong.global.error.exception.BeopdongException;
 import com.example.burserker.beopdong.global.error.exception.ErrorCode;
+import com.example.burserker.beopdong.domain.check_in.exception.SchoolNameRequiredException;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,9 +21,7 @@ public class SearchSchoolService {
 
     public SchoolSearchResponse execute(String name) {
         if(name == null || name.isBlank()) {
-            throw new BeopdongException(
-                    ErrorCode.BAD_REQUEST, "검색할 학교명을 입력해주세요."
-            );
+            throw SchoolNameRequiredException.EXCEPTION;
         }
 
         List<SchoolResponse> schools = new ArrayList<>();
