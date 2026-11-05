@@ -3,6 +3,8 @@ package com.example.burserker.gujeuk.domain.purpose.domain.enums;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import java.time.LocalTime;
+import java.time.format.DateTimeParseException;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -31,8 +33,14 @@ public enum ReservationTime {
 
     @JsonCreator
     public static ReservationTime fromValue(String value) {
+        LocalTime time;
+        try{
+            time = LocalTime.parse(value);
+        } catch (DateTimeParseException | NullPointerException e) {
+            throw new IllegalArgumentException("예약할 수 없는 시간입니다: " + value);
+        }
         for (ReservationTime reservationTime : values()) {
-            if (reservationTime.value().equals(value)) {
+            if (reservationTime.getTime().equals(time)) {
                 return reservationTime;
             }
         }

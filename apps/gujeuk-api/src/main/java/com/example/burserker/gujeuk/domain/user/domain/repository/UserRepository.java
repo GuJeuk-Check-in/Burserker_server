@@ -34,6 +34,14 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u WHERE u.organ.id = :organId AND REPLACE(u.phone, '-', '') = :phone")
     User findByOrganIdAndPhoneWithoutHyphens(@Param("organId") Long organId, @Param("phone") String phone);
 
+    @Query("SELECT u FROM User u WHERE u.organ.id = :organId AND u.name = :name "
+            + "AND REPLACE(u.phone, '-', '') = :phone ORDER BY u.id ASC")
+    List<User> findAllByOrganIdAndNameAndPhoneWithoutHyphens(
+            @Param("organId") Long organId,
+            @Param("name") String name,
+            @Param("phone") String phone
+    );
+
     List<User> findAllByOrganIdOrderByIdAsc(Long organId);
 
     Slice<User> findAllByNameContainingOrderByIdAsc(String name, Pageable pageable);
