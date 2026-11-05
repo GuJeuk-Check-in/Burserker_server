@@ -1,4 +1,4 @@
-package com.example.burserker.beopdong.domain.user.presentation.dto.response;
+package com.example.burserker.beopdong.domain.check_in.presentation.dto.response;
 
 import com.example.burserker.beopdong.domain.purpose.domain.Purpose;
 
