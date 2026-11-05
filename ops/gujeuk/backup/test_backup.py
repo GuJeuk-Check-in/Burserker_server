@@ -1,4 +1,5 @@
 import datetime as dt
+import contextlib
 import gzip
 import io
 import ssl
@@ -9,6 +10,7 @@ import urllib.error
 from unittest.mock import patch
 
 import backup
+import configure
 
 SQL = b"CREATE TABLE item(id INT);\n-- Dump completed on 2026-11-05\n"
 
@@ -193,6 +195,53 @@ class Backups(unittest.TestCase):
             with self.assertRaisesRegex(backup.BackupError, "SSL_CERT_FILE") as raised:
                 destination.request("GET", "/users/me")
         self.assertNotIn("fixture-only-token", str(raised.exception))
+
+    def test_data_source_is_resolved_from_the_api_database_response(self):
+        destination = object.__new__(backup.Notion)
+        database_id = "11111111-1111-4111-8111-111111111111"
+        source_id = "22222222-2222-4222-8222-222222222222"
+        with patch.object(destination, "request", return_value={
+                "data_sources": [{"id": source_id, "name": "fixture"}]}) as request:
+            self.assertEqual(destination.resolve_data_source(database_id), source_id)
+        request.assert_called_once_with("GET", "/databases/"+database_id)
+
+    def test_empty_or_ambiguous_data_source_list_is_not_guessed(self):
+        destination = object.__new__(backup.Notion)
+        for sources in ([], [{"id": "one"}, {"id": "two"}]):
+            with self.subTest(sources=sources), patch.object(destination, "request",
+                    return_value={"data_sources": sources}):
+                with self.assertRaisesRegex(backup.BackupError, "exactly one"):
+                    destination.resolve_data_source("11111111-1111-4111-8111-111111111111")
+
+    def test_setup_with_database_id_saves_api_resolved_source_without_token_output(self):
+        setup = self.root / "setup"
+        source_id = "22222222-2222-4222-8222-222222222222"
+        output = io.StringIO()
+        with patch("sys.argv", ["configure.py", "--root", str(setup), "--database-id",
+                    "11111111-1111-4111-8111-111111111111"]), \
+             patch("builtins.input", side_effect=AssertionError("No ID prompt expected")), \
+             patch("getpass.getpass", return_value="fixture-only-token"), \
+             patch.object(configure, "Notion") as client, contextlib.redirect_stdout(output):
+            client.return_value.request.return_value = {"name": "fixture-connection"}
+            client.return_value.resolve_data_source.return_value = source_id
+            configure.main()
+        saved = backup.read_json(setup / "config.json")
+        self.assertEqual(saved["data_source_id"], source_id)
+        self.assertEqual((setup / "private/notion-token").stat().st_mode & 0o777, 0o600)
+        self.assertNotIn("fixture-only-token", output.getvalue())
+
+    def test_failed_database_access_does_not_leave_private_token_or_config(self):
+        setup = self.root / "setup"
+        with patch("sys.argv", ["configure.py", "--root", str(setup), "--database-id",
+                    "11111111-1111-4111-8111-111111111111"]), \
+             patch("getpass.getpass", return_value="fixture-only-token"), \
+             patch.object(configure, "Notion") as client, contextlib.redirect_stdout(io.StringIO()):
+            client.return_value.request.return_value = {"name": "fixture-connection"}
+            client.return_value.resolve_data_source.side_effect = backup.BackupError("HTTP 404")
+            with self.assertRaises(SystemExit):
+                configure.main()
+        self.assertFalse((setup / "config.json").exists())
+        self.assertFalse(list((setup / "private").iterdir()))
 
 
 if __name__ == "__main__":

@@ -201,6 +201,14 @@ class Notion:
         bot = self.request("GET", "/users/me").get("bot", {})
         return int(bot.get("workspace_limits", {}).get("max_file_upload_size_in_bytes", 5 * MIB))
 
+    def resolve_data_source(self, database_id):
+        database = self.request("GET", "/databases/" + str(uuid.UUID(database_id)))
+        sources = database.get("data_sources", [])
+        if len(sources) != 1:
+            raise BackupError("Database must have exactly one data source for automatic setup; "
+                              "otherwise supply its data source ID explicitly")
+        return str(uuid.UUID(sources[0]["id"]))
+
     def find_page(self, title):
         result = self.request("POST", "/data_sources/" + self.cfg["data_source_id"] + "/query",
                               {"filter": {"property": self.cfg["title_property"],

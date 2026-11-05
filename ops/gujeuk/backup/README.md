@@ -38,10 +38,12 @@ python3 /home/ubuntu/gujeuk-notion-backup/configure.py
 
 데이터 소스 ID(`collection://` 뒤 UUID)를 입력하고 연결 토큰을 숨김 입력한다. 부모 페이지·데이터베이스 ID와 다르다. 실제 접근과 파일 업로드 한도를 확인한 뒤 권한 600 설정·토큰 파일을 저장한다. 기존 토큰을 덮어쓰거나 타이머를 활성화하지 않는다.
 
+데이터베이스 ID를 알고 있으면 `--database-id <UUID>`로 지정해 데이터 소스 ID 입력을 생략할 수 있다. 토큰 인증 → 해당 데이터베이스 접근 → API가 반환한 단일 데이터 소스 선택 → 스키마 확인 순서로 검사한다. 데이터 소스가 여러 개이면 임의 선택하지 않고 명시적 ID 입력을 요구한다. 인증된 연결 이름과 성공한 검사 단계만 출력하며 토큰은 출력하지 않는다.
+
 Mac에서 먼저 토큰을 등록할 때 Python의 기본 CA 경로가 비어 있으면 HTTPS 인증서 검증이 실패할 수 있다. 이 경우 macOS의 기본 CA 파일을 지정해 실행한다. 인증서 검증은 유지하며, 실패한 설정 시도의 임시 토큰은 삭제되므로 다시 숨김 입력해야 한다.
 
 ```bash
-SSL_CERT_FILE=/etc/ssl/cert.pem python3 ops/gujeuk/backup/configure.py --root ~/Documents/구즉/db-backup-166/runtime
+SSL_CERT_FILE=/etc/ssl/cert.pem python3 ops/gujeuk/backup/configure.py --root ~/Documents/구즉/db-backup-166/runtime --database-id <백업_데이터베이스_UUID>
 ```
 
 ```bash
