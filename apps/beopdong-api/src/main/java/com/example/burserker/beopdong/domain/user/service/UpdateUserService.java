@@ -6,6 +6,8 @@ import com.example.burserker.beopdong.domain.user.domain.enums.Route;
 import com.example.burserker.beopdong.domain.user.exception.RouteDetailRequiredException;
 import com.example.burserker.beopdong.domain.user.facade.UserFacade;
 import com.example.burserker.beopdong.domain.user.presentation.dto.request.UpdateUserRequest;
+import com.example.burserker.beopdong.domain.user.domain.repository.UserRepository;
+import com.example.burserker.beopdong.domain.user.exception.UserPhoneAlreadyExistsException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UpdateUserService {
     private final UserFacade userFacade;
     private final SchoolGradeService schoolGradeService;
+    private final UserRepository userRepository;
 
     @Transactional
     public void execute(Long userId, UpdateUserRequest request) {
@@ -24,6 +27,10 @@ public class UpdateUserService {
         }
 
         User user = userFacade.getUserById(userId);
+
+        if (userRepository.existsByPhoneAndIdNot(request.phone(), userId)) {
+            throw UserPhoneAlreadyExistsException.EXCEPTION;
+        }
 
         int grade = schoolGradeService.validateGrade(
                 request.schoolType(), request.grade()

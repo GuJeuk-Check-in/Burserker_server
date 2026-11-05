@@ -16,8 +16,16 @@ import java.time.LocalDate;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(
+        name = "user",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_user_phone",
+                        columnNames = "phone"
+                )
+        }
+)
 public class User extends BaseIdEntity {
-
     @Column(nullable = false)
     private String name;
 

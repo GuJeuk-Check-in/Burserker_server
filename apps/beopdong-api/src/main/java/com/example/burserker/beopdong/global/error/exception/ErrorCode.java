@@ -32,7 +32,8 @@ public enum ErrorCode {
     SIGN_UP_BIRTH_INVALID(400, "생년월일을 다시 확인해 봐요!"),
     SIGN_UP_PHONE_INVALID(400, "전화번호를 다시 확인해 봐요!"),
     SIGN_UP_GRADE_INVALID(400, "학년을 다시 확인해 봐요!"),
-    SIGN_UP_REQUIRED(400, "빈칸을 채워줘요!");
+    SIGN_UP_REQUIRED(400, "빈칸을 채워줘요!"),
+    USER_PHONE_ALREADY_EXISTS(409, "이미 등록된 전화번호입니다."),;
 
     private final int statusCode;
     private final String ErrorMessage;

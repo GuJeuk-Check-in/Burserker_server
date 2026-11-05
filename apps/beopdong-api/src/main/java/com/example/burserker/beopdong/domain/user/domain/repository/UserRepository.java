@@ -15,4 +15,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Slice<User> findAllBy(Pageable pageable);
 
     List<User> findAllByNameContainingOrderByIdAsc(String name);
+
+    boolean existsByPhone(String phone);
+
+    boolean existsByPhoneAndIdNot(String phone, Long id);
 }

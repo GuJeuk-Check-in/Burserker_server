@@ -13,6 +13,7 @@ import com.example.burserker.beopdong.domain.user.domain.User;
 import com.example.burserker.beopdong.domain.user.domain.enums.Route;
 import com.example.burserker.beopdong.domain.user.domain.repository.UserRepository;
 import com.example.burserker.beopdong.domain.user.exception.RouteDetailRequiredException;
+import com.example.burserker.beopdong.domain.user.exception.UserPhoneAlreadyExistsException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +33,10 @@ public class UserSignUpService {
 
     @Transactional
     public UserSignUpResponse execute(UserSignUpRequest request) {
+        if (userRepository.existsByPhone(request.phone())) {
+            throw UserPhoneAlreadyExistsException.EXCEPTION;
+        }
+
         if(request.route() == Route.OTHER &&
                 (request.routeDetail() == null || request.routeDetail().isBlank())) {
             throw RouteDetailRequiredException.EXCEPTION;

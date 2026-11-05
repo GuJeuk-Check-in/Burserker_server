@@ -2,6 +2,8 @@ package com.example.burserker.beopdong.global.error;
 
 import com.example.burserker.beopdong.global.error.exception.BeopdongException;
 import com.example.burserker.beopdong.global.error.exception.ErrorCode;
+import org.hibernate.exception.ConstraintViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -80,5 +82,34 @@ public class GlobalExceptionHandler {
                 response,
                 HttpStatus.INTERNAL_SERVER_ERROR
         );
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolationException(
+            DataIntegrityViolationException e
+    ) {
+        Throwable cause = e;
+
+        while (cause != null) {
+            if (cause instanceof ConstraintViolationException violation) {
+                String constraintName = violation.getConstraintName();
+
+                if (constraintName != null &&
+                        ("uk_user_phone".equals(constraintName) ||
+                                constraintName.endsWith(".uk_user_phone"))) {
+                    ErrorCode errorCode = ErrorCode.USER_PHONE_ALREADY_EXISTS;
+
+                    return ResponseEntity.status(errorCode.getStatusCode())
+                            .body(ErrorResponse.of(
+                                    errorCode,
+                                    errorCode.getErrorMessage()
+                            ));
+                }
+            }
+
+            cause = cause.getCause();
+        }
+
+        return handlerException(e);
     }
 }
