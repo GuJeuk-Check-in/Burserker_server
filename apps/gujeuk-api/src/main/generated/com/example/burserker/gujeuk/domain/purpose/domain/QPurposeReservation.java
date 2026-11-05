@@ -2,7 +2,6 @@ package com.example.burserker.gujeuk.domain.purpose.domain;
 
 import static com.querydsl.core.types.PathMetadataFactory.*;
 
-import com.example.burserker.gujeuk.domain.purpose.domain.enums.ReservationTime;
 import com.querydsl.core.types.dsl.*;
 
 import com.querydsl.core.types.PathMetadata;
@@ -40,7 +39,7 @@ public class QPurposeReservation extends EntityPathBase<PurposeReservation> {
 
     public final DatePath<java.time.LocalDate> reservationDate = createDate("reservationDate", java.time.LocalDate.class);
 
-    public final EnumPath<ReservationTime> startTime = createEnum("startTime", ReservationTime.class);
+    public final EnumPath<com.example.burserker.gujeuk.domain.purpose.domain.enums.ReservationTime> startTime = createEnum("startTime", com.example.burserker.gujeuk.domain.purpose.domain.enums.ReservationTime.class);
 
     public final com.example.burserker.gujeuk.domain.user.domain.QUser user;
 
