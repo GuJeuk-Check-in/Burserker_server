@@ -1,4 +1,4 @@
-package com.example.burserker.beopdong.domain.user.service;
+package com.example.burserker.beopdong.domain.check_in.service.util;
 
 import com.example.burserker.beopdong.domain.user.domain.enums.SchoolType;
 import com.example.burserker.beopdong.global.error.exception.BeopdongException;
