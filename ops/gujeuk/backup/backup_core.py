@@ -14,6 +14,7 @@ import os
 from pathlib import Path
 import re
 import signal
+import ssl
 import stat
 import subprocess
 import tempfile
@@ -187,6 +188,9 @@ class Notion:
         except urllib.error.HTTPError as exc:
             raise BackupError("Notion request failed (HTTP %d); verify access/limits" % exc.code) from None
         except (urllib.error.URLError, TimeoutError, OSError) as exc:
+            if isinstance(getattr(exc, "reason", exc), ssl.SSLCertVerificationError):
+                raise BackupError("Notion TLS certificate verification failed; configure Python's "
+                                  "trusted CA bundle with SSL_CERT_FILE") from None
             raise BackupError("Notion request did not complete; remote outcome will be reconciled") from exc
 
     def preflight(self):

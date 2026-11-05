@@ -1,9 +1,11 @@
 import datetime as dt
 import gzip
 import io
+import ssl
 from pathlib import Path
 import tempfile
 import unittest
+import urllib.error
 from unittest.mock import patch
 
 import backup
@@ -180,6 +182,17 @@ class Backups(unittest.TestCase):
         with patch("urllib.request.urlopen", return_value=io.BytesIO(b'{"ok":true}')) as request:
             self.assertEqual(destination.request("GET", "/users/me"), {"ok": True})
         self.assertEqual(request.call_args.args[0].get_header("Authorization"), "Bearer fixture-only-token")
+
+    def test_untrusted_ca_has_an_actionable_error_without_token(self):
+        token = self.root / "test-token"
+        token.write_text("fixture-only-token")
+        token.chmod(0o600)
+        destination = backup.Notion(dict(self.cfg, token_file=str(token)))
+        failure = urllib.error.URLError(ssl.SSLCertVerificationError("untrusted CA"))
+        with patch("urllib.request.urlopen", side_effect=failure):
+            with self.assertRaisesRegex(backup.BackupError, "SSL_CERT_FILE") as raised:
+                destination.request("GET", "/users/me")
+        self.assertNotIn("fixture-only-token", str(raised.exception))
 
 
 if __name__ == "__main__":
