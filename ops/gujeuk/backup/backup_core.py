@@ -116,7 +116,7 @@ class MySQL:
 
     def dump(self, path):
         cmd = self.command("mysqldump", [
-            "--single-transaction", "--quick", "--no-tablespaces", "--source-data=2",
+            "--single-transaction", "--quick", "--no-tablespaces",
             "--set-gtid-purged=OFF", "--column-statistics=0",
             "--default-character-set=utf8mb4", "--hex-blob",
             "--routines", "--events", "--triggers", "--comments", "--dump-date",

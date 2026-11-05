@@ -11,7 +11,7 @@ import tempfile
 import time
 import uuid
 
-from backup import BackupError, Repository, archive_fingerprint, now, read_json, save_json
+from backup import BackupError, Repository, fingerprint, now, read_json, save_json
 
 
 def verify(cfg, manifest):
@@ -22,8 +22,8 @@ def verify(cfg, manifest):
     baseline = read_json(manifest)
     if baseline["kind"] != "dump":
         raise BackupError("A full dump is required to verify restore")
-    path = manifest.parent / baseline["filename"]
-    if archive_fingerprint(path, "dump")["sha256"] != baseline["sha256"]:
+    path = repository.archive(manifest, baseline)
+    if fingerprint(path)["sha256"] != baseline["sha256"]:
         raise BackupError("Dump checksum mismatch before restore")
     name = "gujeuk-backup-restore-"+uuid.uuid4().hex[:12]
     image = cfg.get("restore_image", "mysql:8.0")
@@ -65,45 +65,6 @@ def verify(cfg, manifest):
                     if process.poll() is None:
                         process.kill()
                         process.wait()
-        candidates = {}
-        for item in repository.manifests():
-            meta = read_json(item)
-            if (meta["kind"] != "binlog" or meta["server_uuid"] != baseline["server_uuid"] or
-                    meta["log_file"] < baseline["position"]["file"]):
-                continue
-            old = candidates.get(meta["log_file"])
-            if old and old[0]["sha256"] != meta["sha256"]:
-                raise BackupError("Conflicting archives for the same binlog")
-            candidates[meta["log_file"]] = (meta, item)
-        if not candidates or baseline["position"]["file"] not in candidates:
-            raise BackupError("Archive the baseline's binlog before verifying the restore chain")
-        with tempfile.TemporaryDirectory(prefix="gujeuk-restore-binlogs-") as folder:
-            for filename, (meta, item) in sorted(candidates.items()):
-                archive = item.parent / meta["filename"]
-                if archive_fingerprint(archive, "binlog")["sha256"] != meta["sha256"]:
-                    raise BackupError("Binary log checksum mismatch before restore")
-                raw = Path(folder) / filename
-                with gzip.open(archive, "rb") as stream, raw.open("wb") as out:
-                    shutil.copyfileobj(stream, out)
-                start = baseline["position"]["position"] if filename == baseline["position"]["file"] else 4
-                command = ["docker", "run", "--rm", "--platform", "linux/amd64", "--network", "none",
-                           "--mount", "type=bind,src="+folder+",dst=/backup,readonly",
-                           "--entrypoint", "mysqlbinlog", cfg.get("mysqlbinlog_image", "mysql:8.0-debian"),
-                           "--no-defaults", "--verify-binlog-checksum", "--skip-gtids", "--disable-log-bin",
-                           "--database="+cfg["database"], "--start-position="+str(start), "/backup/"+filename]
-                with tempfile.TemporaryFile() as errors:
-                    decoder = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=errors)
-                    try:
-                        apply = subprocess.run(mysql(args=("--binary-mode",), stdin=True), stdin=decoder.stdout,
-                                               stdout=subprocess.DEVNULL, stderr=errors, timeout=300)
-                        decoder.stdout.close()
-                        if apply.returncode or decoder.wait(timeout=30):
-                            raise BackupError("Binary log replay failed in isolated MySQL")
-                    finally:
-                        if decoder.poll() is None:
-                            decoder.kill()
-                            decoder.wait()
-                raw.unlink()
         tables = execute(mysql(args=("-Nse", "SELECT TABLE_NAME FROM information_schema.TABLES "
                     "WHERE TABLE_SCHEMA='"+cfg["database"]+"' AND TABLE_TYPE='BASE TABLE'"))).decode().splitlines()
         if not tables:
@@ -112,9 +73,9 @@ def verify(cfg, manifest):
             quoted = "`"+table.replace("`", "``")+"`"
             execute(mysql(args=("-Nse", "SELECT COUNT(*) FROM `"+cfg["database"]+"`."+quoted)))
         baseline.update(restore_verified={"at": now().isoformat(), "database": cfg["database"],
-                        "table_count": len(tables), "binlog_count": len(candidates)}, summary_synced=False)
+                        "table_count": len(tables)}, summary_synced=False)
         save_json(manifest, baseline)
-        print("Isolated dump + binlog restore verified; source database was not modified")
+        print("Isolated full dump restore verified; source database was not modified")
     finally:
         if created:
             execute(["docker", "rm", "-fv", name])

@@ -28,10 +28,6 @@ def main():
     config.update(backup_directory=str(root / "data"), token_file=str(private / "notion-token"))
     value = input("Notion data source ID (not the parent page/database ID): ").strip()
     config["data_source_id"] = str(uuid.UUID(value.removeprefix("collection://")))
-    answer = input("Raw binlogs include ALL databases on this MySQL instance. Accept? [yes/no]: ")
-    config["allow_instance_binlogs"] = answer.strip().lower() == "yes"
-    if not config["allow_instance_binlogs"]:
-        sys.exit("Instance-wide binlog scope was not accepted; no token saved.")
     token = getpass.getpass("Notion internal connection token (hidden): ").strip()
     if not token or "\n" in token:
         sys.exit("No valid token entered.")

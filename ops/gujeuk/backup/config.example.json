@@ -1,13 +1,11 @@
 {
   "container": "gujeuk-mysql-prod",
   "database": "gujeuk_prod",
-  "mysqlbinlog_image": "mysql:8.0-debian",
   "backup_directory": "/home/ubuntu/gujeuk-notion-backup/data",
   "token_file": "/home/ubuntu/gujeuk-notion-backup/private/notion-token",
   "deploy_lock": "/home/ubuntu/gujeuk-aws/.deploy.lock",
   "data_source_id": "REPLACE_WITH_NOTION_DATA_SOURCE_ID",
   "title_property": "이름",
-  "allow_instance_binlogs": false,
   "minimum_free_bytes": 536870912,
   "dump_timeout_seconds": 900
 }

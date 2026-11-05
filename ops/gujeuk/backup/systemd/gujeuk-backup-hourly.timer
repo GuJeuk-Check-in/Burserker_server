@@ -1,9 +1,9 @@
 [Unit]
-Description=Archive Gujeuk binlogs hourly from 01:00 through 19:00 KST
+Description=Dump Gujeuk database hourly from 01:00 through 19:00 KST
 
 [Timer]
 OnCalendar=*-*-* 01..19:00:00 Asia/Seoul
-Unit=gujeuk-backup@binlog.service
+Unit=gujeuk-backup@hourly.service
 Persistent=true
 AccuracySec=1s
 
