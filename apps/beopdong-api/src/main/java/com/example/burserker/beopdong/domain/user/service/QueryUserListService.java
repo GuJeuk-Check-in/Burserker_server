@@ -2,7 +2,6 @@ package com.example.burserker.beopdong.domain.user.service;
 
 import com.example.burserker.beopdong.domain.user.domain.repository.UserRepository;
 import com.example.burserker.beopdong.domain.user.presentation.dto.response.UserListResponse;
-import com.example.burserker.beopdong.domain.user.presentation.dto.response.UserSliceWithTotalResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
