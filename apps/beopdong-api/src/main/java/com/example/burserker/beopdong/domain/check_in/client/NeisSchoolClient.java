@@ -1,4 +1,4 @@
-package com.example.burserker.beopdong.domain.user.client;
+package com.example.burserker.beopdong.domain.check_in.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Value;
