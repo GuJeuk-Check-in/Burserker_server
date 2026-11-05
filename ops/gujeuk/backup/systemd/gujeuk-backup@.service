@@ -1,0 +1,22 @@
+[Unit]
+Description=Gujeuk MySQL backup operation (%i)
+Wants=network-online.target
+After=network-online.target docker.service
+StartLimitIntervalSec=3600
+StartLimitBurst=4
+
+[Service]
+Type=oneshot
+User=ubuntu
+SupplementaryGroups=docker
+WorkingDirectory=/home/ubuntu/gujeuk-notion-backup
+ExecStart=/usr/bin/python3 /home/ubuntu/gujeuk-notion-backup/backup.py %i
+UMask=0077
+Nice=10
+IOSchedulingClass=idle
+TimeoutStartSec=1800
+Restart=on-failure
+RestartSec=300
+NoNewPrivileges=true
+PrivateTmp=true
+MemoryMax=256M

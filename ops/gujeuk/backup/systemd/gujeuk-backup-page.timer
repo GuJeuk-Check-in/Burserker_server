@@ -1,0 +1,11 @@
+[Unit]
+Description=Create daily Gujeuk backup page at midnight KST
+
+[Timer]
+OnCalendar=*-*-* 00:00:00 Asia/Seoul
+Unit=gujeuk-backup@page.service
+Persistent=true
+AccuracySec=1s
+
+[Install]
+WantedBy=timers.target
