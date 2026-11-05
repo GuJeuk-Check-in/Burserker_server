@@ -1,0 +1,8 @@
+config.json
+private/
+data/
+__pycache__/
+*.partial
+*.sql
+*.sql.gz
+*.binlog.gz
