@@ -2,8 +2,6 @@
 Description=Gujeuk MySQL backup operation (%i)
 Wants=network-online.target
 After=network-online.target docker.service
-StartLimitIntervalSec=3600
-StartLimitBurst=4
 
 [Service]
 Type=oneshot
