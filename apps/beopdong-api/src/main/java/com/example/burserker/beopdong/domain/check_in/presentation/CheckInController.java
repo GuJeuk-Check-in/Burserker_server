@@ -33,7 +33,10 @@ public class CheckInController {
     }
 
     @GetMapping("/school")
-    public SchoolSearchResponse searchSchool(@RequestParam(defaultValue = "") String name) {
-        return searchSchoolService.execute(name);
+    public SchoolSearchResponse searchSchool(
+            @RequestParam(defaultValue = "") String name,
+            @RequestParam(defaultValue = "1") int page
+    ) {
+        return searchSchoolService.execute(name, page);
     }
 }
