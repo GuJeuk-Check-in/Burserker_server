@@ -27,6 +27,9 @@ public interface PurposeReservationRepository extends JpaRepository<PurposeReser
     List<ReservationTime> findReservedTimes(
             @Param("purposeId") Long purposeId, @Param("reservationDate") LocalDate reservationDate);
 
+    boolean existsByPurposeIdAndReservationDateAndStartTime(
+            Long purposeId, LocalDate reservationDate, ReservationTime startTime);
+
     Optional<PurposeReservation> findByIdAndPurposeOrganId(Long id, Long organId);
 }
 
