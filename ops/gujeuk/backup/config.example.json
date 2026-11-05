@@ -6,6 +6,5 @@
   "deploy_lock": "/home/ubuntu/gujeuk-aws/.deploy.lock",
   "data_source_id": "REPLACE_WITH_NOTION_DATA_SOURCE_ID",
   "title_property": "이름",
-  "minimum_free_bytes": 536870912,
-  "dump_timeout_seconds": 900
+  "minimum_free_bytes": 536870912
 }

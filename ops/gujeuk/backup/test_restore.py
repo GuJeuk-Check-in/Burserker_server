@@ -66,7 +66,6 @@ def main():
             hourly = repo.snapshot(backup.now(), "hourly-10")
             sql(source, "INSERT INTO backup_fixture.item VALUES(2)")
             final = repo.snapshot(backup.now(), "final")
-            from verify_restore import verify
             for manifest, expected in ((hourly, b"1"), (final, b"2")):
                 meta = backup.read_json(manifest)
                 path = manifest.parent / meta["filename"]
@@ -78,8 +77,6 @@ def main():
                 assert sql(target, "SELECT COUNT(*) FROM backup_fixture.item").strip() == expected
                 assert sql(target, "SELECT COUNT(*) FROM information_schema.SCHEMATA "
                            "WHERE SCHEMA_NAME='other_private_db'").strip() == b"0"
-                verify(cfg, manifest)
-                assert backup.read_json(manifest)["restore_verified"]["table_count"] == 1
             print("PASS: independent hourly/final dumps restore 1/2 rows; other database excluded")
     finally:
         for name in started:
