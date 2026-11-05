@@ -40,10 +40,9 @@ def main():
     started = []
     try:
         for name in names:
-            docker("run", "-d", "--name", name, "--memory=768m",
+            docker("run", "-d", "--name", name, "--network", "none", "--memory=768m",
                    "-e", "MYSQL_ROOT_PASSWORD=fixture-only-password", "mysql:8.0",
-                   "--server-id=166", "--log-bin=fixture-bin", "--binlog-format=ROW",
-                   "--innodb-buffer-pool-size=64M", "--performance-schema=OFF")
+                   "--skip-log-bin", "--innodb-buffer-pool-size=64M", "--performance-schema=OFF")
             started.append(name)
             for attempt in range(90):
                 try:
@@ -56,45 +55,32 @@ def main():
         source, target = names
         sql(source, "CREATE DATABASE backup_fixture; "
                     "CREATE TABLE backup_fixture.item(id INT PRIMARY KEY) ENGINE=InnoDB; "
-                    "INSERT INTO backup_fixture.item VALUES(1)")
+                    "INSERT INTO backup_fixture.item VALUES(1); "
+                    "CREATE DATABASE other_private_db; "
+                    "CREATE TABLE other_private_db.secret(value TEXT); "
+                    "INSERT INTO other_private_db.secret VALUES('other-db-sentinel-must-not-be-backed-up')")
         with tempfile.TemporaryDirectory(prefix="gujeuk-backup-restore-") as folder:
             cfg = {"container": source, "database": "backup_fixture",
-                   "backup_directory": folder, "minimum_free_bytes": 0,
-                   "allow_instance_binlogs": True}
+                   "backup_directory": folder, "minimum_free_bytes": 0}
             repo = backup.Repository(cfg)
-            baseline = repo.snapshot(backup.now(), baseline=True)
+            hourly = repo.snapshot(backup.now(), "hourly-10")
             sql(source, "INSERT INTO backup_fixture.item VALUES(2)")
-            logs = repo.collect(backup.now())
-            sql(source, "INSERT INTO backup_fixture.item VALUES(3)")
-            base = json.loads(baseline.read_text())
-            restore_dump(target, baseline.parent / base["filename"])
-            assert sql(target, "SELECT COUNT(*) FROM backup_fixture.item").strip() == b"1"
-            for manifest in logs:
-                meta = json.loads(manifest.read_text())
-                raw = Path(folder) / meta["log_file"]
-                with gzip.open(manifest.parent / meta["filename"], "rb") as stream:
-                    raw.write_bytes(stream.read())
-                decoded = docker("run", "--rm", "--platform", "linux/amd64", "--network", "none",
-                                 "--mount",
-                                 "type=bind,src="+folder+",dst=/backup,readonly",
-                                 "--entrypoint", "mysqlbinlog", "mysql:8.0-debian", "--no-defaults",
-                                 "--verify-binlog-checksum",
-                                 "--skip-gtids", "--disable-log-bin", "--database=backup_fixture",
-                                 "--start-position="+str(meta["start_position"]),
-                                 "/backup/"+meta["log_file"])
-                subprocess.run(client(target, args=("--binary-mode",), stdin=True),
-                               input=decoded, stdout=subprocess.DEVNULL,
-                               stderr=subprocess.PIPE, check=True, timeout=120)
-            # The third row is deliberately newer than the archived logs.
-            assert sql(target, "SELECT GROUP_CONCAT(id ORDER BY id) FROM backup_fixture.item").strip() == b"1,2"
+            final = repo.snapshot(backup.now(), "final")
             from verify_restore import verify
-            verify(cfg, baseline)
-            assert json.loads(baseline.read_text())["restore_verified"]["binlog_count"] > 0
-            final = repo.snapshot(backup.now())
-            latest = json.loads(final.read_text())
-            restore_dump(target, final.parent / latest["filename"])
-            assert sql(target, "SELECT COUNT(*) FROM backup_fixture.item").strip() == b"3"
-            print("PASS: full dump restores 1 row; dump + archived binlogs restores 2; final dump restores 3")
+            for manifest, expected in ((hourly, b"1"), (final, b"2")):
+                meta = backup.read_json(manifest)
+                path = manifest.parent / meta["filename"]
+                with gzip.open(path, "rb") as stream:
+                    content = stream.read()
+                assert b"other_private_db" not in content
+                assert b"other-db-sentinel" not in content
+                restore_dump(target, path)
+                assert sql(target, "SELECT COUNT(*) FROM backup_fixture.item").strip() == expected
+                assert sql(target, "SELECT COUNT(*) FROM information_schema.SCHEMATA "
+                           "WHERE SCHEMA_NAME='other_private_db'").strip() == b"0"
+                verify(cfg, manifest)
+                assert backup.read_json(manifest)["restore_verified"]["table_count"] == 1
+            print("PASS: independent hourly/final dumps restore 1/2 rows; other database excluded")
     finally:
         for name in started:
             docker("rm", "-fv", name)

@@ -34,6 +34,6 @@ jobs:
           systemd-analyze calendar '*-*-* 01..19:00:00 Asia/Seoul'
           systemd-analyze calendar '*-*-* 19:30:00 Asia/Seoul'
           systemd-analyze calendar '*-*-* *:00/5:00 Asia/Seoul'
-      - name: Restore disposable MySQL fixture from dump and binlogs
+      - name: Restore hourly and final dumps in disposable MySQL
         working-directory: ops/gujeuk/backup
         run: python3 test_restore.py
