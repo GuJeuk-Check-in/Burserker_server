@@ -3,6 +3,9 @@ package com.example.burserker.beopdong.domain.check_in.client;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
+import com.example.burserker.beopdong.global.error.exception.BeopdongException;
+import com.example.burserker.beopdong.global.error.exception.ErrorCode;
+import org.springframework.web.client.RestClientException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
@@ -33,16 +36,20 @@ public class NeisSchoolClient {
     }
 
     public JsonNode search(String name, int page) {
-        return restClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/hub/schoolInfo")
-                        .queryParam("KEY", apiKey)
-                        .queryParam("Type", "json")
-                        .queryParam("pIndex", page)
-                        .queryParam("pSize", 100)
-                        .queryParam("SCHUL_NM", "{name}")
-                        .build(name))
-                .retrieve()
-                .body(JsonNode.class);
+        try {
+            return restClient.get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/hub/schoolInfo")
+                            .queryParam("KEY", apiKey)
+                            .queryParam("Type", "json")
+                            .queryParam("pIndex", page)
+                            .queryParam("pSize", 100)
+                            .queryParam("SCHUL_NM", "{name}")
+                            .build(name))
+                    .retrieve()
+                    .body(JsonNode.class);
+        } catch (RestClientException e) {
+            throw new BeopdongException(ErrorCode.INTERNAL_SERVER_ERROR);
+        }
     }
 }
