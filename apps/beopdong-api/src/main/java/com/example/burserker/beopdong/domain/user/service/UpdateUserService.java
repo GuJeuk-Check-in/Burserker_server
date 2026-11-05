@@ -1,8 +1,8 @@
 package com.example.burserker.beopdong.domain.user.service;
 
+import com.example.burserker.beopdong.domain.check_in.service.util.SchoolGradeService;
 import com.example.burserker.beopdong.domain.user.domain.User;
 import com.example.burserker.beopdong.domain.user.domain.enums.Route;
-import com.example.burserker.beopdong.domain.user.domain.enums.SchoolType;
 import com.example.burserker.beopdong.domain.user.exception.RouteDetailRequiredException;
 import com.example.burserker.beopdong.domain.user.facade.UserFacade;
 import com.example.burserker.beopdong.domain.user.presentation.dto.request.UpdateUserRequest;

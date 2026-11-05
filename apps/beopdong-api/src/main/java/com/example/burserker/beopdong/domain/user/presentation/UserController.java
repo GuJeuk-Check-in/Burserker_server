@@ -1,12 +1,11 @@
 package com.example.burserker.beopdong.domain.user.presentation;
 
-import com.example.burserker.beopdong.domain.user.presentation.dto.response.SchoolSearchResponse;
 import com.example.burserker.beopdong.domain.user.presentation.dto.response.UserDetailResponse;
 import com.example.burserker.beopdong.domain.user.presentation.dto.response.UserListResponse;
 import com.example.burserker.beopdong.domain.user.service.QueryUserDetailService;
 import com.example.burserker.beopdong.domain.user.service.QueryUserListService;
 import com.example.burserker.beopdong.domain.user.presentation.dto.request.UpdateUserRequest;
-import com.example.burserker.beopdong.domain.user.service.SearchSchoolService;
+import com.example.burserker.beopdong.domain.check_in.service.SearchSchoolService;
 import com.example.burserker.beopdong.domain.user.service.UpdateUserService;
 import com.example.burserker.beopdong.domain.user.service.QueryUserListByNameService;
 import com.example.burserker.beopdong.domain.user.presentation.dto.response.UserSearchResponse;
@@ -45,11 +44,6 @@ public class UserController {
             @RequestBody @Valid UpdateUserRequest request
     ) {
         updateUserService.execute(id, request);
-    }
-
-    @GetMapping("/school")
-    public SchoolSearchResponse searchSchool(@RequestParam(defaultValue = "") String name) {
-        return searchSchoolService.execute(name);
     }
 
     @GetMapping("/search")
