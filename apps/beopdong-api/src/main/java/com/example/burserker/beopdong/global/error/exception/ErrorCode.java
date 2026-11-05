@@ -23,7 +23,17 @@ public enum ErrorCode {
     PASSWORD_MISMATCH(401, "비밀 번호가 일치 하지 않습니다."),
 
     PURPOSE_NOT_FOUND(404, "해당 이용대장이 존재하지 않습니다."),
-    PURPOSE_NOT_MODIFIABLE(400, "해당 이용대장은 수정하거나 삭제할 수 없습니다.");
+    PURPOSE_NOT_MODIFIABLE(400, "해당 이용대장은 수정하거나 삭제할 수 없습니다."),
+
+    USER_NOT_FOUND(404, "해당 회원이 존재하지 않습니다."),
+    ROUTE_DETAIL_REQUIRED(400, "기타 방문 경로를 입력해주세요."),
+    USER_NAME_NOT_FOUND(404, "해당 이름이 존재하지 않습니다."),
+
+    SIGN_UP_BIRTH_INVALID(400, "생년월일을 다시 확인해 봐요!"),
+    SIGN_UP_PHONE_INVALID(400, "전화번호를 다시 확인해 봐요!"),
+    SIGN_UP_GRADE_INVALID(400, "학년을 다시 확인해 봐요!"),
+    SIGN_UP_REQUIRED(400, "빈칸을 채워줘요!"),
+    USER_PHONE_ALREADY_EXISTS(409, "이미 등록된 전화번호입니다."),;
 
     private final int statusCode;
     private final String ErrorMessage;

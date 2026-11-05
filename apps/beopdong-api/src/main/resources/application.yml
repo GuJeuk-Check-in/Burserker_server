@@ -28,3 +28,6 @@ jwt:
   accessExpiration: 7200
   refreshExpiration: 604800
   secretKey: ${JWT_SECRET_KEY}
+
+neis:
+  api-key: ${NEIS_API_KEY}

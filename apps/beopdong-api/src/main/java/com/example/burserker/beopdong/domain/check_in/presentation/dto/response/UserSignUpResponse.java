@@ -1,0 +1,27 @@
+package com.example.burserker.beopdong.domain.check_in.presentation.dto.response;
+
+import com.example.burserker.beopdong.domain.purpose.domain.Purpose;
+
+import java.util.List;
+
+public record UserSignUpResponse(
+        boolean pcForm,
+        boolean singForm,
+        boolean pingForm
+) {
+    public static UserSignUpResponse from(List<Purpose> purposes) {
+        boolean pcForm = false;
+        boolean singForm = false;
+        boolean pingForm = false;
+
+        for(Purpose purpose : purposes) {
+            switch(purpose.getPurposeName()) {
+                case "인터넷" -> pcForm = true;
+                case "노래방" -> singForm = true;
+                case "탁구" -> pingForm = true;
+            }
+        }
+
+        return new UserSignUpResponse(pcForm, singForm, pingForm);
+    }
+}
