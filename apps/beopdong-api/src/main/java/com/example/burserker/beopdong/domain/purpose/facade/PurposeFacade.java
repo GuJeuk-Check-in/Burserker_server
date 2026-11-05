@@ -19,9 +19,14 @@ public class PurposeFacade {
     }
 
     public List<Purpose> getPurposesByIds(List<Long> purposeIds) {
-        List<Purpose> purposes = purposeRepository.findAllById(purposeIds);
+        List<Long> uniquePurposeIds = purposeIds.stream()
+                .distinct()
+                .toList();
 
-        if(purposeIds.size() != purposes.size()) {
+        List<Purpose> purposes =
+                purposeRepository.findAllById(uniquePurposeIds);
+
+        if (uniquePurposeIds.size() != purposes.size()) {
             throw PurposeNotFoundException.EXCEPTION;
         }
 
