@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class LogPurpose extends BaseIdEntity {
+public class PurposeLog extends BaseIdEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "log_id", nullable = false)
@@ -27,4 +27,12 @@ public class LogPurpose extends BaseIdEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private PurposeState purposeState;
+
+    public static PurposeLog create(Log log, Purpose purpose) {
+        return PurposeLog.builder()
+                .log(log)
+                .purpose(purpose)
+                .purposeState(PurposeState.NONE)
+                .build();
+    }
 }

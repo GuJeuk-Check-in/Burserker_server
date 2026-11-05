@@ -87,4 +87,30 @@ public class User extends BaseIdEntity {
         this.birthYMD = birthYMD;
         this.applyDate = applyDate;
     }
+
+    public static User create(
+            String name,
+            Gender gender,
+            String phone,
+            LocalDate birthYMD,
+            int grade,
+            String school,
+            Route route,
+            String routeDetail,
+            String address,
+            boolean privacyAgreed
+    ) {
+        return User.builder()
+                .name(name)
+                .gender(gender)
+                .phone(phone)
+                .birthYMD(birthYMD)
+                .grade(grade)
+                .school(school)
+                .route(route)
+                .routeDetail(route == Route.OTHER ? routeDetail : null)
+                .address(address)
+                .privacyAgreed(privacyAgreed)
+                .build();
+    }
 }
