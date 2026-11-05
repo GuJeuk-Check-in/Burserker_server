@@ -1,8 +1,8 @@
-package com.example.burserker.beopdong.domain.checkin.service;
+package com.example.burserker.beopdong.domain.check_in.service;
 
 import com.example.burserker.beopdong.domain.user.domain.User;
 import com.example.burserker.beopdong.domain.user.domain.repository.UserRepository;
-import com.example.burserker.beopdong.domain.checkin.presentation.dto.response.UserExistsResponse;
+import com.example.burserker.beopdong.domain.check_in.presentation.dto.response.UserExistsResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
