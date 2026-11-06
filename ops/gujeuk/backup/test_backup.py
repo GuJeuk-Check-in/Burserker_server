@@ -114,6 +114,17 @@ class Backups(unittest.TestCase):
              patch.object(backup, "publish_pending", side_effect=publish):
             backup.run(self.cfg, "hourly", self.at)
 
+    def test_retry_skips_old_error_dates_without_deleting_their_details(self):
+        errors = {date: {"hourly-10": {"message": "dump failed"}} for date in
+                  ("2026-11-04", "2026-11-05", "2026-11-06")}
+        self.repo.state["capture_errors"] = errors
+        with patch.object(backup, "Destination") as destination:
+            backup.publish_pending(self.cfg, self.repo, "2026-11-06")
+        self.assertEqual([call.args[1] for call in destination.return_value.update_day.call_args_list],
+                         ["2026-11-05", "2026-11-06"])
+        self.assertEqual(self.repo.state["capture_errors"], errors)
+        self.assertEqual(errors["2026-11-04"]["hourly-10"]["message"], "dump failed")
+
     def test_schedule_has_nineteen_hours_and_final(self):
         for hour in range(1, 20):
             self.assertEqual(backup.capture_slot("hourly", self.at.replace(hour=hour)), "hourly-%02d" % hour)

@@ -162,7 +162,8 @@ def publish_pending(cfg, repository, day):
     previous = (dt.date.fromisoformat(day) - dt.timedelta(days=1)).isoformat()
     if (repository.root / previous).exists():
         touched.add(previous)
-    touched.update(repository.state.get("capture_errors", {}))
+    touched.update(date for date in repository.state.get("capture_errors", {})
+                   if date >= previous)
     for date in sorted(touched):
         destination.update_day(repository, date)
     if failed:
