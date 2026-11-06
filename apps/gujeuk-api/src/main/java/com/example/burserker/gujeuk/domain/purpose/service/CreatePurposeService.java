@@ -28,7 +28,7 @@ public class CreatePurposeService {
                         .purposeName(request.purpose())
                         .purposeIndex(purposeIndex)
                         .reservationStatus(request.reservationStatus())
-                        .organ(organFacade.getOrganReference(organId))
+                        .organ(organFacade.getOrganById(organId))
                         .build()
         );
     }
