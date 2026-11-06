@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum ReservationTime {
-    TIME_09_30(LocalTime.of(9, 30)),
+    TIME_09_30(LocalTime.of(9,  30)),
     TIME_10_30(LocalTime.of(10, 30)),
     TIME_11_30(LocalTime.of(11, 30)),
     TIME_12_30(LocalTime.of(12, 30)),
@@ -22,7 +22,11 @@ public enum ReservationTime {
     TIME_17_30(LocalTime.of(17, 30)),
     TIME_18_30(LocalTime.of(18, 30)),
     TIME_19_30(LocalTime.of(19, 30)),
-    TIME_20_30(LocalTime.of(20, 30));
+    TIME_20_30(LocalTime.of(20, 30)),
+    TIME_21_30(LocalTime.of(21, 30)),
+    TIME_22_30(LocalTime.of(22, 30)),
+    TIME_23_30(LocalTime.of(23, 30));
+
 
     private final LocalTime time;
 
