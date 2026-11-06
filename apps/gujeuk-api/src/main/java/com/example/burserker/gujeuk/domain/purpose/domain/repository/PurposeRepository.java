@@ -15,6 +15,8 @@ public interface PurposeRepository extends JpaRepository<Purpose, Long>, Purpose
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<Purpose> findWithLockByIdAndOrganId(Long id, Long organId);
 
+    Optional<Purpose> findByIdAndOrganId(Long id, Long organId);
+
     List<Purpose> findAllByOrganIdAndPurposeIndexGreaterThan(Long organId, int purposeIndex);
 
     List<Purpose> findAllByOrderByPurposeIndexAsc();
