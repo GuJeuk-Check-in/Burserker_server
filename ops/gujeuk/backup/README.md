@@ -48,8 +48,16 @@ systemctl list-timers 'gujeuk-backup-*' --no-pager
 
 ## 확인과 한계
 
+서버 실행 로그를 확인한다.
+
 ```bash
 journalctl -u 'gujeuk-backup@*' -n 30 --no-pager
+```
+
+테스트는 저장소 체크아웃에서 실행한다. `/path/to/Burserker_server`를 실제 저장소 경로로 바꾼다.
+
+```bash
+cd /path/to/Burserker_server/ops/gujeuk/backup
 python3 -m unittest -v test_backup.py
 python3 test_restore.py
 ```
