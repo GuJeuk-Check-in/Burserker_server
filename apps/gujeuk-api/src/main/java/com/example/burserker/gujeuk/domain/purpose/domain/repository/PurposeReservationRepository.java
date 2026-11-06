@@ -4,6 +4,7 @@ import com.example.burserker.gujeuk.domain.purpose.domain.PurposeReservation;
 import com.example.burserker.gujeuk.domain.purpose.domain.enums.ReservationTime;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -28,5 +29,10 @@ public interface PurposeReservationRepository extends JpaRepository<PurposeReser
             @Param("purposeId") Long purposeId, @Param("reservationDate") LocalDate reservationDate);
 
     Optional<PurposeReservation> findByIdAndPurposeOrganId(Long id, Long organId);
+
+    @Modifying
+    @Query("DELETE FROM PurposeReservation r WHERE r.purpose.id = :purposeId")
+    void deleteAllByPurposeId(@Param("purposeId")Long purposeId);
+
 }
 
