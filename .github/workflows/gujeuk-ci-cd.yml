@@ -14,7 +14,6 @@ on:
       - "monitor-bot/**"
       - "ops/monitoring/**"
       - "ops/gujeuk/backup/**"
-      - ".github/workflows/gujeuk-backup-ci.yml"
       - ".github/ISSUE_TEMPLATE/**"
   pull_request:
     branches: ["main", "develop"]

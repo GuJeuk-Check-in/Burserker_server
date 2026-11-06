@@ -54,15 +54,7 @@ systemctl list-timers 'gujeuk-backup-*' --no-pager
 journalctl -u 'gujeuk-backup@*' -n 30 --no-pager
 ```
 
-테스트는 저장소 체크아웃에서 실행한다. `/path/to/Burserker_server`를 실제 저장소 경로로 바꾼다.
-
-```bash
-cd /path/to/Burserker_server/ops/gujeuk/backup
-python3 -m unittest -v test_backup.py
-python3 test_restore.py
-```
-
-완료 파일 재사용·실패 파일 제외·로컬 보존·첨부 중복 방지를 유지한다. 실제 복원 테스트는 일회용 MySQL만 사용한다. 운영 서버에 자동 복원하거나 매시간 복원 검증용 컨테이너를 띄우지 않는다.
+완료 파일 재사용·실패 파일 제외·로컬 보존·첨부 중복 방지를 유지한다. 운영 DB에 자동 복원하는 기능은 없다.
 
 업로드 상한은 Notion 워크스페이스의 파일 크기 한도와 20MiB 중 작은 값이다. 이 상한을 넘으면 업로드 오류를 남기고 EC2 파일을 보존한다. 분할 업로드·binlog·자동 삭제·외부 장애 알림은 구현하지 않는다. 토큰은 권한 600, 백업 디렉터리는 700으로 보관하며 gzip은 암호화가 아니다.
 
