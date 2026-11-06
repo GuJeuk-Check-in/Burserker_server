@@ -183,7 +183,9 @@ def run(cfg, mode, moment=None):
             day = moment.date().isoformat()
             errors = repository.state.setdefault("capture_errors", {}).setdefault(day, {})
             try:
-                repository.snapshot(moment, slot)
+                with Path(cfg["deploy_lock"]).open("a+") as deploy_lock:
+                    fcntl.flock(deploy_lock, fcntl.LOCK_EX)
+                    repository.snapshot(moment, slot)
                 errors.pop(slot, None)
                 if not errors:
                     repository.state["capture_errors"].pop(day, None)
@@ -204,9 +206,7 @@ def main():
     os.umask(0o077)
     try:
         cfg = read_json(Path(args.config))
-        with Path(cfg["deploy_lock"]).open("a+") as lock:
-            fcntl.flock(lock, fcntl.LOCK_EX)
-            run(cfg, args.mode)
+        run(cfg, args.mode)
     except (BackupError, OSError, ValueError, KeyError, subprocess.SubprocessError) as exc:
         print("Backup failed: " + (str(exc) if isinstance(exc, BackupError) else type(exc).__name__), file=sys.stderr)
         return 1

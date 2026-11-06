@@ -1,5 +1,6 @@
 import datetime as dt
 import gzip
+import fcntl
 from pathlib import Path
 import tempfile
 import unittest
@@ -60,7 +61,8 @@ class Backups(unittest.TestCase):
         self.addCleanup(folder.cleanup)
         self.root, self.source = Path(folder.name), Source()
         self.cfg = {"container": "fixture", "database": "fixture",
-                    "backup_directory": str(self.root), "minimum_free_bytes": 0}
+                    "backup_directory": str(self.root), "minimum_free_bytes": 0,
+                    "deploy_lock": str(self.root / "deploy.lock")}
         self.repo = backup.Repository(self.cfg, self.source)
         self.at = dt.datetime(2026, 11, 6, 10, tzinfo=backup.KST)
 
@@ -88,6 +90,29 @@ class Backups(unittest.TestCase):
         with patch.object(backup, "MySQL", return_value=self.source), patch.object(backup, "publish_pending"):
             backup.run(self.cfg, "retry", self.at)
         self.assertEqual(self.source.dumps, 0)
+
+    def test_deploy_lock_covers_dump_but_is_released_before_notion(self):
+        def lock_available():
+            with Path(self.cfg["deploy_lock"]).open("a+") as lock:
+                try:
+                    fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                except BlockingIOError:
+                    return False
+                return True
+
+        dump = self.source.dump
+
+        def capture(path):
+            self.assertFalse(lock_available())
+            dump(path)
+
+        def publish(*args):
+            self.assertTrue(lock_available())
+
+        with patch.object(backup, "MySQL", return_value=self.source), \
+             patch.object(self.source, "dump", side_effect=capture), \
+             patch.object(backup, "publish_pending", side_effect=publish):
+            backup.run(self.cfg, "hourly", self.at)
 
     def test_schedule_has_nineteen_hours_and_final(self):
         for hour in range(1, 20):
