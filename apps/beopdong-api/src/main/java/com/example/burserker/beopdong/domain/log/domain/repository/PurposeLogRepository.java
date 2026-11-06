@@ -2,9 +2,9 @@ package com.example.burserker.beopdong.domain.log.domain.repository;
 
 import com.example.burserker.beopdong.domain.log.domain.PurposeLog;
 import com.example.burserker.beopdong.domain.log.domain.enums.PurposeState;
-import org.springframework.data.repository.query.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -23,7 +23,7 @@ public interface PurposeLogRepository
             LocalDateTime now
     );
 
-    // 인터넷 좌석 사용 중인지
+    // 인터넷 좌석 사용 중 여부
     boolean existsByPurposeIdAndSeatAndPurposeStateAndEndAtAfter(
             Long purposeId,
             Integer seat,
@@ -31,27 +31,26 @@ public interface PurposeLogRepository
             LocalDateTime now
     );
 
-    // 탁구, 노래방 사용 중인지
+    // 탁구·노래방 사용 중 여부
     boolean existsByPurposeIdAndPurposeStateAndEndAtAfter(
             Long purposeId,
             PurposeState purposeState,
             LocalDateTime now
     );
 
-    // 유저가 오늘 이미 시설 사용 했는지
+    // 회원의 해당 시설 당일 사용 여부
     @Query("""
-        SELECT COUNT(pl) > 0
-        FROM PurposeLog pl
-        WHERE pl.log.user.id = :userId
-          AND pl.purpose.id = :purposeId
-          AND pl.startAt >= :dayStart
-          AND pl.startAt < :nextDayStart
-        """)
+            SELECT COUNT(pl) > 0
+            FROM PurposeLog pl
+            WHERE pl.log.user.id = :userId
+              AND pl.purpose.id = :purposeId
+              AND pl.startAt >= :dayStart
+              AND pl.startAt < :nextDayStart
+            """)
     boolean existsDailyUsage(
             @Param("userId") Long userId,
             @Param("purposeId") Long purposeId,
             @Param("dayStart") LocalDateTime dayStart,
             @Param("nextDayStart") LocalDateTime nextDayStart
     );
-
 }

@@ -1,8 +1,8 @@
 package com.example.burserker.beopdong.domain.log.domain;
 
+import com.example.burserker.beopdong.domain.log.domain.enums.PurposeState;
 import com.example.burserker.beopdong.domain.purpose.domain.Purpose;
 import com.example.burserker.beopdong.global.entity.BaseIdEntity;
-import com.example.burserker.beopdong.domain.log.domain.enums.PurposeState;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,6 +30,8 @@ public class PurposeLog extends BaseIdEntity {
     @Column(nullable = false)
     private PurposeState purposeState;
 
+    private String name;
+
     private Integer seat;
 
     private String usePurpose;
@@ -44,9 +46,11 @@ public class PurposeLog extends BaseIdEntity {
         return PurposeLog.builder()
                 .log(log)
                 .purpose(purpose)
+                .name(log.getName())
                 .purposeState(PurposeState.NONE)
                 .build();
     }
+
     public void startPc(
             int seat,
             String usePurpose,
@@ -73,7 +77,6 @@ public class PurposeLog extends BaseIdEntity {
         this.endAt = startAt.plusMinutes(usageMinutes);
         this.purposeState = PurposeState.PENDING;
     }
-
 
     public void completeIfExpired(LocalDateTime now) {
         if (purposeState == PurposeState.PENDING
