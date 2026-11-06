@@ -21,8 +21,8 @@ public class PurposeFacade {
                 .orElseThrow(() -> PurposeNotFoundException.EXCEPTION);
     }
 
-    public Purpose getPurposeByIdAndOrganId(Long purposeId, Long organId) {
-        return purposeRepository.findByIdAndOrganId(purposeId, organId)
+    public Purpose getPurposeWithLock(Long purposeId, Long organId) {
+        return purposeRepository.findWithLockByIdAndOrganId(purposeId, organId)
                 .orElseThrow(() -> PurposeNotFoundException.EXCEPTION);
     }
 }

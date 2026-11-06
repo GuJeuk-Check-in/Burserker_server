@@ -19,12 +19,11 @@ public class DeletePurposeService {
     private final OrganFacade organFacade;
     private final PurposeReservationRepository purposeReservationRepository;
 
-
     @Transactional
     public void execute(Long organId, Long id) {
         organFacade.getOrganById(organId);
 
-        Purpose purpose = purposeFacade.getPurposeByIdAndOrganId(id, organId);
+        Purpose purpose = purposeFacade.getPurposeWithLock(id, organId);
         int purposeIndex = purpose.getPurposeIndex();
 
         purposeReservationRepository.deleteAllByPurposeId(purpose.getId());
