@@ -10,6 +10,8 @@ public interface PurposeRepository extends JpaRepository<Purpose, Long>, Purpose
 
     Optional<Purpose> findByOrganIdAndPurposeName(Long organId, String purposeName);
 
+    Optional<Purpose> findByIdAndOrganId(Long id, Long organId);
+
     List<Purpose> findAllByOrganIdAndPurposeIndexGreaterThan(Long organId, int purposeIndex);
 
     List<Purpose> findAllByOrderByPurposeIndexAsc();
