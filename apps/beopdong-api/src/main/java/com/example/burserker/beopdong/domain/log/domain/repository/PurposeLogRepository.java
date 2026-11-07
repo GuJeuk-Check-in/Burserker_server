@@ -64,4 +64,9 @@ public interface PurposeLogRepository
             PurposeState purposeState,
             LocalDateTime now
     );
+
+    Optional<PurposeLog> findByLogIdAndPurposePurposeName(
+            Long logId,
+            String purposeName
+    );
 }

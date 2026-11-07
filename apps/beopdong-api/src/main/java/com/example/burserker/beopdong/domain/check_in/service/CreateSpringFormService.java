@@ -1,6 +1,7 @@
 package com.example.burserker.beopdong.domain.check_in.service;
 
 import com.example.burserker.beopdong.domain.check_in.presentation.dto.request.SpringFormRequest;
+import com.example.burserker.beopdong.domain.check_in.service.util.UsageLockService;
 import com.example.burserker.beopdong.domain.check_in.service.util.UsageValidationService;
 import com.example.burserker.beopdong.domain.log.domain.Log;
 import com.example.burserker.beopdong.domain.log.domain.PurposeLog;
@@ -13,6 +14,7 @@ import com.example.burserker.beopdong.global.error.exception.BeopdongException;
 import com.example.burserker.beopdong.global.error.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -26,9 +28,12 @@ public class CreateSpringFormService {
     private final PurposeLogRepository purposeLogRepository;
     private final UsageValidationService usageValidationService;
     private final PurposeRepository purposeRepository;
+    private final UsageLockService usageLockService;
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void execute(SpringFormRequest request) {
+        usageLockService.lock();
+
         Purpose purpose = purposeRepository.findById(request.purpose())
                 .orElseThrow(() -> new BeopdongException(ErrorCode.INVALID_FORM_PURPOSE));
 
