@@ -80,6 +80,6 @@ public class UserSignUpService {
 
         user.increaseVisitCount();
 
-        return UserSignUpResponse.from(purposes);
+        return UserSignUpResponse.from(log.getId(), purposes);
     }
 }

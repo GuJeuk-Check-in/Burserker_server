@@ -28,12 +28,17 @@ public enum ErrorCode {
     USER_NOT_FOUND(404, "해당 회원이 존재하지 않습니다."),
     ROUTE_DETAIL_REQUIRED(400, "기타 방문 경로를 입력해주세요."),
     USER_NAME_NOT_FOUND(404, "해당 이름이 존재하지 않습니다."),
+    USER_PHONE_ALREADY_EXISTS(409, "이미 등록된 전화번호입니다."),
 
     SIGN_UP_BIRTH_INVALID(400, "생년월일을 다시 확인해 봐요!"),
     SIGN_UP_PHONE_INVALID(400, "전화번호를 다시 확인해 봐요!"),
     SIGN_UP_GRADE_INVALID(400, "학년을 다시 확인해 봐요!"),
     SIGN_UP_REQUIRED(400, "빈칸을 채워줘요!"),
-    USER_PHONE_ALREADY_EXISTS(409, "이미 등록된 전화번호입니다."),;
+
+    LOG_NOT_FOUND(404, "방명록을 찾을 수 없습니다."),
+    USAGE_ALREADY_ACTIVE(409, "이미 이용 중인 시설이 있거나 선택한 좌석 또는 시설이 사용 중입니다."),
+    DAILY_USAGE_EXCEEDED(409, "해당 시설은 하루에 한 번만 이용할 수 있습니다."),
+    INVALID_FORM_PURPOSE(400, "이용대장을 다시 선택 해주세요!");
 
     private final int statusCode;
     private final String ErrorMessage;

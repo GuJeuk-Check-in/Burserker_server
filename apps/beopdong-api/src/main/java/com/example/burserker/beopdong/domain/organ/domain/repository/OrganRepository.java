@@ -13,4 +13,6 @@ public interface OrganRepository extends JpaRepository<Organ, Long> {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<Organ> findWithLockById(Long id);
+
+    Optional<Organ> findFirstByOrderByIdAsc();
 }
