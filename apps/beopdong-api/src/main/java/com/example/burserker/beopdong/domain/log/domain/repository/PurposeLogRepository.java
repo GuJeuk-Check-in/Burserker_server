@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 public interface PurposeLogRepository
@@ -31,14 +32,14 @@ public interface PurposeLogRepository
             LocalDateTime now
     );
 
-    // 탁구·노래방 사용 중 여부
+    // 탁구/노래방 사용 중 여부
     boolean existsByPurposeIdAndPurposeStateAndEndAtAfter(
             Long purposeId,
             PurposeState purposeState,
             LocalDateTime now
     );
 
-    // 회원의 해당 시설 당일 사용 여부
+    // 유저 해당 시설 당일 사용 여부
     @Query("""
             SELECT COUNT(pl) > 0
             FROM PurposeLog pl
@@ -52,5 +53,15 @@ public interface PurposeLogRepository
             @Param("purposeId") Long purposeId,
             @Param("dayStart") LocalDateTime dayStart,
             @Param("nextDayStart") LocalDateTime nextDayStart
+    );
+
+    List<PurposeLog> findAllByPurposeStateAndEndAtLessThanEqual(
+            PurposeState purposeState,
+            LocalDateTime now
+    );
+
+    List<PurposeLog> findAllByPurposeStateAndEndAtAfter(
+            PurposeState purposeState,
+            LocalDateTime now
     );
 }

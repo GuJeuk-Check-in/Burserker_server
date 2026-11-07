@@ -17,29 +17,47 @@ public class UsageValidationService {
 
     public void validateUser(Long userId, Long purposeId, LocalDateTime now) {
         if (purposeLogRepository
-                .existsByLogUserIdAndPurposeStateAndEndAtAfter(userId, PurposeState.PENDING, now)) {
+                .existsByLogUserIdAndPurposeStateAndEndAtAfter(
+                        userId,
+                        PurposeState.PENDING,
+                        now
+                )) {
             throw new BeopdongException(ErrorCode.USAGE_ALREADY_ACTIVE);
         }
 
         LocalDateTime dayStart = now.toLocalDate().atStartOfDay();
         LocalDateTime nextDayStart = dayStart.plusDays(1);
 
-        if (purposeLogRepository.existsDailyUsage(userId, purposeId, dayStart, nextDayStart)) {
+        if (purposeLogRepository.existsDailyUsage(
+                userId,
+                purposeId,
+                dayStart,
+                nextDayStart
+        )) {
             throw new BeopdongException(ErrorCode.DAILY_USAGE_EXCEEDED);
         }
     }
 
-    public void validatePcSeat(Long purposeId, int seat, LocalDateTime now
-    ) {
-        if (purposeLogRepository.existsByPurposeIdAndSeatAndPurposeStateAndEndAtAfter(purposeId, seat, PurposeState.PENDING, now)) {
-            throw new BeopdongException(ErrorCode.FACILITY_ALREADY_IN_USE);
+    public void validatePcSeat(Long purposeId, int seat, LocalDateTime now) {
+        if (purposeLogRepository
+                .existsByPurposeIdAndSeatAndPurposeStateAndEndAtAfter(
+                        purposeId,
+                        seat,
+                        PurposeState.PENDING,
+                        now
+                )) {
+            throw new BeopdongException(ErrorCode.USAGE_ALREADY_ACTIVE);
         }
     }
 
-    public void validateSping(Long purposeId, LocalDateTime now
-    ) {
-        if (purposeLogRepository.existsByPurposeIdAndPurposeStateAndEndAtAfter(purposeId, PurposeState.PENDING, now)) {
-            throw new BeopdongException(ErrorCode.FACILITY_ALREADY_IN_USE);
+    public void validateSping(Long purposeId, LocalDateTime now) {
+        if (purposeLogRepository
+                .existsByPurposeIdAndPurposeStateAndEndAtAfter(
+                        purposeId,
+                        PurposeState.PENDING,
+                        now
+                )) {
+            throw new BeopdongException(ErrorCode.USAGE_ALREADY_ACTIVE);
         }
     }
 }
