@@ -2,8 +2,7 @@ package com.example.burserker.beopdong.domain.check_in.service.util;
 
 import com.example.burserker.beopdong.domain.organ.domain.Organ;
 import com.example.burserker.beopdong.domain.organ.domain.repository.OrganRepository;
-import com.example.burserker.beopdong.global.error.exception.BeopdongException;
-import com.example.burserker.beopdong.global.error.exception.ErrorCode;
+import com.example.burserker.beopdong.domain.organ.exception.OrganNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -18,9 +17,9 @@ public class UsageLockService {
     @Transactional(propagation = Propagation.MANDATORY)
     public void lock() {
         Organ organ = organRepository.findFirstByOrderByIdAsc()
-                .orElseThrow(() -> new BeopdongException(ErrorCode.ORGAN_NOT_FOUND));
+                .orElseThrow(() -> OrganNotFoundException.EXCEPTION);
 
         organRepository.findWithLockById(organ.getId())
-                .orElseThrow(() -> new BeopdongException(ErrorCode.ORGAN_NOT_FOUND));
+                .orElseThrow(() -> OrganNotFoundException.EXCEPTION);
     }
 }

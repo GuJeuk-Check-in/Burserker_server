@@ -9,8 +9,8 @@ import com.example.burserker.beopdong.domain.log.domain.enums.PurposeState;
 import com.example.burserker.beopdong.domain.log.domain.repository.PurposeLogRepository;
 import com.example.burserker.beopdong.domain.log.facade.LogFacade;
 import com.example.burserker.beopdong.domain.purpose.domain.Purpose;
-import com.example.burserker.beopdong.global.error.exception.BeopdongException;
-import com.example.burserker.beopdong.global.error.exception.ErrorCode;
+import com.example.burserker.beopdong.domain.check_in.exception.InvalidFormPurposeException;
+import com.example.burserker.beopdong.domain.check_in.exception.DailyUsageExceededException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -36,7 +36,7 @@ public class CreatePcFormService {
 
         PurposeLog purposeLog = purposeLogRepository
                 .findByLogIdAndPurposePurposeName(log.getId(), "인터넷")
-                .orElseThrow(() -> new BeopdongException(ErrorCode.INVALID_FORM_PURPOSE));
+                .orElseThrow(() -> InvalidFormPurposeException.EXCEPTION);
 
         Purpose purpose = purposeLog.getPurpose();
 
@@ -48,7 +48,7 @@ public class CreatePcFormService {
 
         if (purposeLog.getPurposeState() != PurposeState.NONE
                 || purposeLog.getStartAt() != null) {
-            throw new BeopdongException(ErrorCode.DAILY_USAGE_EXCEEDED);
+            throw DailyUsageExceededException.EXCEPTION;
         }
 
         purposeLog.startPc(request.seat(), request.usePurpose(), now, 40);

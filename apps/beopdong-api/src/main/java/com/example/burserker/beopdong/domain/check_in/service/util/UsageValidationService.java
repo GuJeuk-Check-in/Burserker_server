@@ -2,8 +2,8 @@ package com.example.burserker.beopdong.domain.check_in.service.util;
 
 import com.example.burserker.beopdong.domain.log.domain.enums.PurposeState;
 import com.example.burserker.beopdong.domain.log.domain.repository.PurposeLogRepository;
-import com.example.burserker.beopdong.global.error.exception.BeopdongException;
-import com.example.burserker.beopdong.global.error.exception.ErrorCode;
+import com.example.burserker.beopdong.domain.check_in.exception.UsageAlreadyActiveException;
+import com.example.burserker.beopdong.domain.check_in.exception.DailyUsageExceededException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +22,7 @@ public class UsageValidationService {
                         PurposeState.PENDING,
                         now
                 )) {
-            throw new BeopdongException(ErrorCode.USAGE_ALREADY_ACTIVE);
+            throw UsageAlreadyActiveException.EXCEPTION;
         }
 
         LocalDateTime dayStart = now.toLocalDate().atStartOfDay();
@@ -34,7 +34,7 @@ public class UsageValidationService {
                 dayStart,
                 nextDayStart
         )) {
-            throw new BeopdongException(ErrorCode.DAILY_USAGE_EXCEEDED);
+            throw DailyUsageExceededException.EXCEPTION;
         }
     }
 
@@ -46,7 +46,7 @@ public class UsageValidationService {
                         PurposeState.PENDING,
                         now
                 )) {
-            throw new BeopdongException(ErrorCode.USAGE_ALREADY_ACTIVE);
+            throw UsageAlreadyActiveException.EXCEPTION;
         }
     }
 
@@ -57,7 +57,7 @@ public class UsageValidationService {
                         PurposeState.PENDING,
                         now
                 )) {
-            throw new BeopdongException(ErrorCode.USAGE_ALREADY_ACTIVE);
+            throw UsageAlreadyActiveException.EXCEPTION;
         }
     }
 }
