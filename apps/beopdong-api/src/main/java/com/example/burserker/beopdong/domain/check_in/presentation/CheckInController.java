@@ -44,7 +44,7 @@ public class CheckInController {
 
     @PostMapping("/sping")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void createSpringForm(
+    public void createSingAndPingPongForm(
             @RequestBody @Valid SpringFormRequest request
     ) {
         createSpringFormService.execute(request);
