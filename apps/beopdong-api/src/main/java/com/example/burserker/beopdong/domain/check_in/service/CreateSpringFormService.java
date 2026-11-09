@@ -24,7 +24,6 @@ import java.time.ZoneId;
 @Service
 @RequiredArgsConstructor
 public class CreateSpringFormService {
-
     private final LogFacade logFacade;
     private final PurposeLogRepository purposeLogRepository;
     private final UsageValidationService usageValidationService;
@@ -40,17 +39,15 @@ public class CreateSpringFormService {
 
         int usageMinutes;
 
-        switch (purpose.getPurposeName()) {
-            case "노래방" -> {
-                if (request.count() > 2) {
-                    throw InvalidUsageCountException.EXCEPTION;
-                }
-                usageMinutes = request.count() == 1 ? 20 : 30;
+        if ("노래방".equals(purpose.getPurposeName())) {
+            if (request.count() > 2) {
+                throw InvalidUsageCountException.EXCEPTION;
             }
-
-            case "탁구" -> usageMinutes = 40;
-
-            default -> throw InvalidFormPurposeException.EXCEPTION;
+            usageMinutes = request.count() == 1 ? 20 : 30;
+        } else if ("탁구".equals(purpose.getPurposeName())) {
+            usageMinutes = 40;
+        } else {
+            throw InvalidFormPurposeException.EXCEPTION;
         }
 
         Log log = logFacade.getLogById(request.logId());
