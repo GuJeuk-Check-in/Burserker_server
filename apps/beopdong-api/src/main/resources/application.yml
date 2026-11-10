@@ -16,7 +16,7 @@ spring:
     open-in-view: false
     hibernate:
       # 기존 로컬 스키마를 사용하며 기동 중 테이블을 생성하거나 수정하지 않습니다.
-      ddl-auto: none
+      ddl-auto: update
 
 server:
   # IDE 로컬 실행은 env에서 8082, 컨테이너 기본 실행은 8080을 사용합니다.
