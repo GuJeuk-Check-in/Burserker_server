@@ -24,6 +24,9 @@ public class VisitPurpose extends BaseIdEntity {
     @JoinColumn(name = "purpose_id", nullable = false)
     private Purpose purpose;
 
+    /**
+     * 한 방문에서 선택한 이용목적을 저장한다. 실제 신청·이용 기록과는 분리한다.
+     */
     public static VisitPurpose create(Log log, Purpose purpose) {
         return VisitPurpose.builder().log(log).purpose(purpose).build();
     }

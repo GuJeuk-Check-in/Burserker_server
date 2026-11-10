@@ -16,6 +16,9 @@ public record CompletedUsageResponse(
         Integer seat
 ) {
 
+    /**
+     * 완료 신청서 한 건을 날짜·시간·좌석·인원을 포함한 목록 항목으로 변환한다.
+     */
     public static CompletedUsageResponse from(PurposeLog usage) {
         return new CompletedUsageResponse(
                 usage.getId(),

@@ -47,6 +47,9 @@ public class PurposeLog extends BaseIdEntity {
 
     private LocalDateTime endAt;
 
+    /**
+     * 종료된 회차의 이름·인원·시간을 팀당 한 건의 완료 신청서로 복사한다. 원본 참가자 관계는 유지한다.
+     */
     public static PurposeLog complete(PurposeUsage usage) {
         return PurposeLog.builder()
                 .log(usage.getMembers().get(0).getLog())
@@ -62,6 +65,9 @@ public class PurposeLog extends BaseIdEntity {
                 .build();
     }
 
+    /**
+     * 관리자가 완료 신청서의 표시값을 수정한다. 회원·방명록과 실제 참가자 정보는 변경하지 않는다.
+     */
     public void updateCompletedUsage(Purpose purpose, String name, String usePurpose, Integer seat,
                                      Integer count, LocalDateTime startAt, LocalDateTime endAt) {
         this.purpose = purpose;

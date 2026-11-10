@@ -29,6 +29,9 @@ public class CreatePcFormService {
     private final UsageLockService usageLockService;
     private final CompletePurposeUsageService completePurposeUsageService;
 
+    /**
+     * 공통 잠금 안에서 방문의 선택 목록, 회원 이용 상태와 좌석을 검사하고 컴퓨터 이용을 시작한다.
+     */
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void execute(PcFormRequest request) {
         usageLockService.lock();

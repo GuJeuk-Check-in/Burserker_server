@@ -23,6 +23,9 @@ public class QueryUsageStatusService {
     private final PurposeUsageRepository purposeUsageRepository;
     private final CompletePurposeUsageService completePurposeUsageService;
 
+    /**
+     * 만료 회차를 정리한 뒤 사용 중인 컴퓨터 좌석과 노래방·탁구의 팀 현황을 반환한다.
+     */
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public UsageStatusResponse execute() {
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
@@ -62,6 +65,9 @@ public class QueryUsageStatusService {
         );
     }
 
+    /**
+     * 팀 전체 이름·참가 인원·공통 종료 시각과 남은 시간을 노래방·탁구 응답으로 변환한다.
+     */
     private UsageStatusResponse.RoomUsage toRoomUsage(
             PurposeUsage usage,
             LocalDateTime now
@@ -76,6 +82,9 @@ public class QueryUsageStatusService {
         );
     }
 
+    /**
+     * 공통 종료 시각까지 남은 시간을 분 단위로 올림하고 음수는 0으로 반환한다.
+     */
     private long getRemainMinutes(
             PurposeUsage usage,
             LocalDateTime now

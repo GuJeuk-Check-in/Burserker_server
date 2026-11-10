@@ -10,6 +10,9 @@ public record UserSignUpResponse(
         boolean singForm,
         boolean pingForm
 ) {
+    /**
+     * 생성한 방명록 ID와 선택한 시설별 신청서 작성 필요 여부를 반환한다.
+     */
     public static UserSignUpResponse from(Long logId, List<Purpose> purposes) {
         boolean pcForm = false;
         boolean singForm = false;

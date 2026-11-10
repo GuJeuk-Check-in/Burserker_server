@@ -28,6 +28,9 @@ public class PurposeUsageMember extends BaseIdEntity {
     @Column(nullable = false)
     private LocalDateTime joinedAt;
 
+    /**
+     * 이용 회차에 참가자의 방문과 개인 합류 시각을 연결한다.
+     */
     public static PurposeUsageMember create(PurposeUsage usage, Log log, LocalDateTime now) {
         return PurposeUsageMember.builder().purposeUsage(usage).log(log).joinedAt(now).build();
     }

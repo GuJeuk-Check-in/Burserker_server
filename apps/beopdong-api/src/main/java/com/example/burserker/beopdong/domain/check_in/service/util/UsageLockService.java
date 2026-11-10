@@ -14,6 +14,9 @@ public class UsageLockService {
 
     private final OrganRepository organRepository;
 
+    /**
+     * 호출자의 트랜잭션에서 공통 기관 행을 잠가 신청 검증과 상태 변경을 순서대로 처리한다.
+     */
     @Transactional(propagation = Propagation.MANDATORY)
     public void lock() {
         Organ organ = organRepository.findFirstByOrderByIdAsc()

@@ -35,6 +35,9 @@ public class UserSignUpService {
     private final PurposeRepository purposeRepository;
     private final SchoolGradeService schoolGradeService;
 
+    /**
+     * 회원과 방명록을 생성하고 선택한 목적 및 기본 휴식을 저장한다. 시설 신청서는 미리 만들지 않는다.
+     */
     @Transactional
     public UserSignUpResponse execute(UserSignUpRequest request) {
         if (userRepository.existsByPhone(request.phone())) {

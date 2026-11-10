@@ -31,6 +31,9 @@ public class CreateSpringFormService {
     private final CompletePurposeUsageService completePurposeUsageService;
     private final PurposeRepository purposeRepository;
 
+    /**
+     * 노래방·탁구를 한 명씩 신청한다. 빈 시설은 새 회차를 만들고, 사용 중이면 정원 안에서 합류한다.
+     */
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void execute(SpringFormRequest request) {
         usageLockService.lock();

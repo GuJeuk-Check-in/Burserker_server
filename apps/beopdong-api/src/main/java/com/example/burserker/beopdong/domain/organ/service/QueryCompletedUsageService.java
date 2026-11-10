@@ -21,6 +21,9 @@ public class QueryCompletedUsageService {
     private final PurposeLogRepository purposeLogRepository;
     private final CompletePurposeUsageService completePurposeUsageService;
 
+    /**
+     * 페이지 조건을 검사하고 만료 회차를 정리한 뒤, 선택한 시설의 완료 이력을 최신순으로 조회한다.
+     */
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public CompletedUsagePageResponse execute(int page, int size, Long purpose) {
         if (page < 0 || size != 30) {
