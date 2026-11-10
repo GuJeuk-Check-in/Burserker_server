@@ -26,10 +26,15 @@ public class PurposeLog extends BaseIdEntity {
     @JoinColumn(name = "purpose_id", nullable = false)
     private Purpose purpose;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "purpose_usage_id", unique = true)
+    private PurposeUsage purposeUsage;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private PurposeState purposeState;
 
+    @Column(columnDefinition = "TEXT")
     private String name;
 
     private Integer seat;
@@ -42,47 +47,29 @@ public class PurposeLog extends BaseIdEntity {
 
     private LocalDateTime endAt;
 
-    public static PurposeLog create(Log log, Purpose purpose) {
+    public static PurposeLog complete(PurposeUsage usage) {
         return PurposeLog.builder()
-                .log(log)
-                .purpose(purpose)
-                .name(log.getName())
-                .purposeState(PurposeState.NONE)
+                .log(usage.getMembers().get(0).getLog())
+                .purpose(usage.getPurpose())
+                .purposeUsage(usage)
+                .purposeState(PurposeState.SUCCESS)
+                .name(usage.getName())
+                .seat(usage.getSeat())
+                .usePurpose(usage.getUsePurpose())
+                .count(usage.getSeat() == null ? usage.getCount() : null)
+                .startAt(usage.getStartAt())
+                .endAt(usage.getEndAt())
                 .build();
     }
 
-    public void startPc(
-            int seat,
-            String usePurpose,
-            LocalDateTime startAt,
-            int usageMinutes
-    ) {
-        this.seat = seat;
+    public void updateCompletedUsage(Purpose purpose, String name, String usePurpose, Integer seat,
+                                     Integer count, LocalDateTime startAt, LocalDateTime endAt) {
+        this.purpose = purpose;
+        this.name = name;
         this.usePurpose = usePurpose;
-        this.count = null;
-        this.startAt = startAt;
-        this.endAt = startAt.plusMinutes(usageMinutes);
-        this.purposeState = PurposeState.PENDING;
-    }
-
-    public void startSping(
-            int count,
-            LocalDateTime startAt,
-            int usageMinutes
-    ) {
-        this.seat = null;
-        this.usePurpose = null;
+        this.seat = seat;
         this.count = count;
         this.startAt = startAt;
-        this.endAt = startAt.plusMinutes(usageMinutes);
-        this.purposeState = PurposeState.PENDING;
-    }
-
-    public void completeIfExpired(LocalDateTime now) {
-        if (purposeState == PurposeState.PENDING
-                && endAt != null
-                && !now.isBefore(endAt)) {
-            this.purposeState = PurposeState.SUCCESS;
-        }
+        this.endAt = endAt;
     }
 }

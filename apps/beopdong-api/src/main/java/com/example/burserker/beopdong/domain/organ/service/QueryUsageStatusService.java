@@ -1,12 +1,12 @@
 package com.example.burserker.beopdong.domain.organ.service;
 
-import com.example.burserker.beopdong.domain.log.domain.PurposeLog;
-import com.example.burserker.beopdong.domain.log.domain.enums.PurposeState;
-import com.example.burserker.beopdong.domain.log.domain.repository.PurposeLogRepository;
+import com.example.burserker.beopdong.domain.log.domain.PurposeUsage;
+import com.example.burserker.beopdong.domain.log.domain.repository.PurposeUsageRepository;
 import com.example.burserker.beopdong.domain.log.service.CompletePurposeUsageService;
 import com.example.burserker.beopdong.domain.organ.presentation.dto.response.UsageStatusResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
@@ -20,23 +20,23 @@ import java.util.List;
 @RequiredArgsConstructor
 public class QueryUsageStatusService {
 
-    private final PurposeLogRepository purposeLogRepository;
+    private final PurposeUsageRepository purposeUsageRepository;
     private final CompletePurposeUsageService completePurposeUsageService;
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public UsageStatusResponse execute() {
-        completePurposeUsageService.execute();
-
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
 
-        List<PurposeLog> usages = purposeLogRepository
-                .findAllByPurposeStateAndEndAtAfter(PurposeState.PENDING, now);
+        completePurposeUsageService.execute(now);
+
+        List<PurposeUsage> usages = purposeUsageRepository
+                .findAllByCompletedFalseAndEndAtAfter(now);
 
         List<UsageStatusResponse.PcUsage> pc = new ArrayList<>();
         UsageStatusResponse.RoomUsage pingPong = null;
         UsageStatusResponse.RoomUsage sing = null;
 
-        for (PurposeLog usage : usages) {
+        for (PurposeUsage usage : usages) {
             switch (usage.getPurpose().getPurposeName()) {
                 case "인터넷" -> pc.add(
                         new UsageStatusResponse.PcUsage(
@@ -63,7 +63,7 @@ public class QueryUsageStatusService {
     }
 
     private UsageStatusResponse.RoomUsage toRoomUsage(
-            PurposeLog usage,
+            PurposeUsage usage,
             LocalDateTime now
     ) {
         return new UsageStatusResponse.RoomUsage(
@@ -77,7 +77,7 @@ public class QueryUsageStatusService {
     }
 
     private long getRemainMinutes(
-            PurposeLog usage,
+            PurposeUsage usage,
             LocalDateTime now
     ) {
         long seconds = Duration.between(now, usage.getEndAt()).getSeconds();

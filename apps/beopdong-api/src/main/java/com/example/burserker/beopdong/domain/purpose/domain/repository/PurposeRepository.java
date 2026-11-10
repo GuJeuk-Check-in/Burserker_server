@@ -8,6 +8,8 @@ import java.util.Optional;
 
 public interface PurposeRepository extends JpaRepository<Purpose, Long> {
 
+    Optional<Purpose> findFirstByPurposeNameOrderByIdAsc(String purposeName);
+
     List<Purpose> findAllByOrganIdAndPurposeIndexGreaterThan(Long organId, int purposeIndex);
 
     List<Purpose> findAllByOrderByPurposeIndexAsc();

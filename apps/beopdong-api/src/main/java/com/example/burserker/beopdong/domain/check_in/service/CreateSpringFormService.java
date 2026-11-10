@@ -1,18 +1,17 @@
 package com.example.burserker.beopdong.domain.check_in.service;
 
 import com.example.burserker.beopdong.domain.check_in.presentation.dto.request.SpringFormRequest;
+import com.example.burserker.beopdong.domain.check_in.exception.InvalidFormPurposeException;
 import com.example.burserker.beopdong.domain.check_in.service.util.UsageLockService;
 import com.example.burserker.beopdong.domain.check_in.service.util.UsageValidationService;
 import com.example.burserker.beopdong.domain.log.domain.Log;
-import com.example.burserker.beopdong.domain.log.domain.PurposeLog;
-import com.example.burserker.beopdong.domain.log.domain.enums.PurposeState;
-import com.example.burserker.beopdong.domain.log.domain.repository.PurposeLogRepository;
-import com.example.burserker.beopdong.domain.purpose.domain.repository.PurposeRepository;
+import com.example.burserker.beopdong.domain.log.domain.PurposeUsage;
+import com.example.burserker.beopdong.domain.log.domain.repository.PurposeUsageRepository;
+import com.example.burserker.beopdong.domain.log.domain.repository.VisitPurposeRepository;
 import com.example.burserker.beopdong.domain.log.facade.LogFacade;
+import com.example.burserker.beopdong.domain.log.service.CompletePurposeUsageService;
 import com.example.burserker.beopdong.domain.purpose.domain.Purpose;
-import com.example.burserker.beopdong.domain.check_in.exception.InvalidFormPurposeException;
-import com.example.burserker.beopdong.domain.check_in.exception.DailyUsageExceededException;
-import com.example.burserker.beopdong.domain.check_in.exception.InvalidUsageCountException;
+import com.example.burserker.beopdong.domain.purpose.domain.repository.PurposeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -24,49 +23,41 @@ import java.time.ZoneId;
 @Service
 @RequiredArgsConstructor
 public class CreateSpringFormService {
+    private final PurposeUsageRepository purposeUsageRepository;
+    private final VisitPurposeRepository visitPurposeRepository;
     private final LogFacade logFacade;
-    private final PurposeLogRepository purposeLogRepository;
     private final UsageValidationService usageValidationService;
-    private final PurposeRepository purposeRepository;
     private final UsageLockService usageLockService;
+    private final CompletePurposeUsageService completePurposeUsageService;
+    private final PurposeRepository purposeRepository;
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void execute(SpringFormRequest request) {
         usageLockService.lock();
 
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+        completePurposeUsageService.execute(now);
+
+        Log log = logFacade.getLogById(request.logId());
         Purpose purpose = purposeRepository.findById(request.purpose())
                 .orElseThrow(() -> InvalidFormPurposeException.EXCEPTION);
 
-        int usageMinutes;
-
-        if ("노래방".equals(purpose.getPurposeName())) {
-            if (request.count() > 2) {
-                throw InvalidUsageCountException.EXCEPTION;
-            }
-            usageMinutes = request.count() == 1 ? 20 : 30;
-        } else if ("탁구".equals(purpose.getPurposeName())) {
-            usageMinutes = 40;
-        } else {
+        if ((!"노래방".equals(purpose.getPurposeName()) && !"탁구".equals(purpose.getPurposeName()))
+                || !visitPurposeRepository.existsByLogIdAndPurposeId(log.getId(), purpose.getId())) {
             throw InvalidFormPurposeException.EXCEPTION;
         }
 
-        Log log = logFacade.getLogById(request.logId());
+        usageValidationService.validateUser(log.getUser().getId(), now);
 
-        PurposeLog purposeLog = purposeLogRepository
-                .findByLogIdAndPurposeId(log.getId(), purpose.getId())
-                .orElseThrow(() -> InvalidFormPurposeException.EXCEPTION);
+        PurposeUsage usage = purposeUsageRepository
+                .findFirstByPurposeIdAndCompletedFalseAndEndAtAfterOrderByIdAsc(purpose.getId(), now)
+                .orElse(null);
 
-        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
-
-        usageValidationService.validateUser(log.getUser().getId(), purpose.getId(), now);
-
-        usageValidationService.validateSping(purpose.getId(), now);
-
-        if (purposeLog.getPurposeState() != PurposeState.NONE
-                || purposeLog.getStartAt() != null) {
-            throw DailyUsageExceededException.EXCEPTION;
+        if (usage == null) {
+            usage = PurposeUsage.createRoom(purpose, log, now);
+        } else {
+            usage.join(log, now);
         }
-
-        purposeLog.startSping(request.count(), now, usageMinutes);
+        purposeUsageRepository.save(usage);
     }
 }
