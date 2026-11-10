@@ -1,12 +1,13 @@
 # 구즉·법동 프로젝트 현황
 
-> 최종 갱신: 2026-11-06. 영역별 확인 시점과 저장소 설정·실제 서버 상태를 구분합니다.
+> 최종 갱신: 2026-11-11. 영역별 확인 시점과 저장소 설정·실제 서버 상태를 구분합니다.
 > 과거 변경 이력은 Git에서 확인하고, 이 문서에는 현재 구조와 작업에 필요한 내용만 유지합니다.
 
 ## 1. 먼저 확인할 사항
 
 - 구즉 운영 DB의 Notion 자동 백업(#166)을 EC2에 설치·활성화했습니다. 실제 파일 첨부·격리 복원·재다운로드 해시 검증을 완료했으며 일정과 한계는 9절을 확인합니다.
-- 기존 `chore/#154-beopdong-CaddySetting`의 법동 도메인 매핑은 저장소 Caddyfile 수정 기준입니다. 서버 프록시 적용 여부는 별도 확인합니다.
+- 2026-11-10 EC2의 실제 Caddyfile과 실행 중인 설정에 법동 도메인이 없는 것을 확인했습니다. 법동 외부 요청은 525, 내부 `/purpose` 요청은 `beopdong_stag.purpose` 테이블 누락으로 500이었습니다.
+- 2026-11-11 develop `f6f4fe1e`의 법동 CI/CD는 성공했지만 외부 법동 stag는 여전히 525입니다. 해당 커밋의 workflow에는 Caddyfile 전송·reload가 없었습니다. 실제 서버 반영은 #187에서 추가하며, 머지·배포 후 HTTPS 정상 응답을 확인해야 합니다. 이번 서버 재확인은 SSH 시간 초과·AWS 인증 만료로 진행하지 못했습니다.
 - 2026-10-29 Datadog 법동 스테이징 로그에서 JWT 키 길이 검사 실패와 앱 종료·재기동 반복을 확인했습니다. EC2 전체 CPU 사용량을 모두 법동 때문이라고 단정하지 않습니다.
 - 2026-11-05 일반 EC2 SSH는 시간 초과였지만 AWS SSM을 통한 SSH 접속은 성공했습니다. 백업 작업에서 확인하지 않은 서버 env·앱 운영 상태는 별도 재확인이 필요합니다.
 - API·인증의 기준은 컨트롤러·DTO·SecurityConfig입니다. 설명 문서나 과거 배포 결과만으로 현재 상태를 판단하지 않습니다.
@@ -25,7 +26,7 @@
 - 공통: Java 17, Spring Boot 3.5.6, Gradle, MySQL 8, Redis 7.2, Spring Security/JWT, JPA.
 - 구즉 추가 구성: QueryDSL, Flyway, Apache POI, Datadog Java tracer.
 - Java 패키지: `com.example.burserker.gujeuk`, `com.example.burserker.beopdong`.
-- 법동은 구즉 클래스·Flyway SQL을 공유하지 않으며 `ddl-auto: none`을 사용합니다.
+- 법동은 구즉 클래스·Flyway SQL을 공유하지 않습니다. #185에서 `ddl-auto: update`로 변경해 앱 기동 시 스키마를 생성·변경하도록 설정했습니다.
 
 ```bash
 ./gradlew :apps:gujeuk-api:bootJar
@@ -87,14 +88,16 @@
 |---|---|---|
 | workflow | `.github/workflows/gujeuk-ci-cd.yml` | `.github/workflows/beopdong-ci-cd.yml` |
 | PR | Java 컴파일 | Java 컴파일 |
-| develop/main push | JAR·이미지 빌드 → GHCR → stag/prod | JAR·이미지 빌드 → GHCR → stag/prod |
+| develop/main push | JAR·이미지 빌드 → GHCR → stag/prod | JAR·이미지 빌드 → GHCR → 공용 Caddy 적용 → stag/prod 앱 배포 |
 | 수동 실행 | 빌드, 배포 없음 | 빌드, 배포 없음 |
-| 내부 기동 확인 | 공개 `/purpose/all` | 컨테이너 실행 + Hikari/Spring 기동 로그 + Redis PING |
+| 내부 기동 확인 | 공개 `/purpose/all` | `/purpose` 200 + 컨테이너 실행 + Hikari/Spring 기동 로그 + Redis PING |
 | 외부 HTTPS 확인 | 공개 도메인의 `/purpose/all` 200 | 현재 workflow에 없음 |
 
 - workflow의 경로 필터에 따라 기관별 실행 여부가 결정됩니다. 공통 빌드·모듈 변경은 두 workflow에 영향을 줄 수 있습니다.
+- Caddyfile만 main/develop에 push해도 기존 구즉·법동 CI/CD가 실행되며 앱 이미지도 다시 빌드·배포합니다. PR은 컴파일만, 수동 실행은 빌드만 수행하고 서버에 배포하지 않습니다.
+- 법동 deploy job은 Compose와 Caddyfile을 함께 전송하고 기존 EC2 배포 잠금 안에서 Caddy 검증 → 파일 백업·덮어쓰기 → reload → 기존 앱 배포 순서로 실행합니다. reload 실패 시 기존 파일·설정으로 복구하고 중단합니다. main/develop이 하나의 Caddy를 공유하므로 전체 도메인 매핑을 두 브랜치에서 일관되게 관리해야 합니다.
 - 법동은 루트 HTTP 응답 검사를 하지 않습니다. 별도 헬스체크 컨트롤러·정적 기본 페이지·루트 공개 설정은 추가하지 않습니다.
-- 법동 배포는 DB 계정 SELECT, 컨테이너 실행 여부, Hikari/Spring 기동 로그, 앱에서 Redis PING으로 확인합니다. 실제 HTTP 요청 처리·외부 HTTPS는 검사 범위 밖입니다.
+- 법동 배포는 DB 계정 SELECT, 컨테이너 실행 여부, 현재 실행 이후 Hikari/Spring 기동 로그, 호스트 앱 포트의 `/purpose` 200, 앱에서 Redis PING으로 확인합니다. 외부 HTTPS는 검사 범위 밖입니다.
 - 구즉에는 DB 연결 유효성을 검사하는 공개 `/common/health/ready`도 있지만 현재 CI/CD 검사 경로는 `/purpose/all`입니다.
 - env·이미지·서비스 이름 검증을 유지하고 전체 `down`, `--remove-orphans`, 볼륨 삭제를 배포에 추가하지 않습니다.
 
@@ -107,12 +110,12 @@
 | 구즉 스테이징 API | `https://aws-stag.oijwef098234.com` |
 | 구즉 프론트 | `https://gujeuk-check-in-fe.pages.dev` |
 | 구즉 스테이징 프론트 | `https://gujeuk-check-in-develop.pages.dev` |
-| 법동 운영 API 설정 도메인 | `https://aws.beopdong-api.oijwef098234.com` |
-| 법동 스테이징 API 설정 도메인 | `https://aws.beopdong-stag-api.oijwef098234.com` |
+| 법동 운영 API 설정 도메인 | `https://aws-beopdong-api.oijwef098234.com` |
+| 법동 스테이징 API 설정 도메인 | `https://aws-beopdong-stag-api.oijwef098234.com` |
 | 게임 API | `https://game-api.oijwef098234.com` |
 | Caddy | `/home/ubuntu/gujeuk-aws/proxy` |
 
-- Caddy는 도메인별로 호스트 앱 포트에 전달합니다. 저장소 `ops/gujeuk/Caddyfile`은 법동 운영 8083, 스테이징 8082도 연결하며 앱 CI/CD가 프록시나 DNS를 자동 변경하지 않습니다. 서버 적용과 다단계 서브도메인의 Cloudflare 인증서 설정은 별도로 확인해야 합니다.
+- Caddy는 도메인별로 호스트 앱 포트에 전달합니다. 저장소 `ops/gujeuk/Caddyfile`은 법동 운영 8083, 스테이징 8082도 연결합니다. #187의 법동 workflow는 기존 deploy job에서 Caddy 설정 전송·검증·reload를 수행하며 DNS는 변경하지 않습니다. 실제 적용·인증서 발급·외부 HTTPS 성공은 배포 후 확인해야 합니다.
 - 과거 서버에는 제거된 `api.taisu.site`, `api-stag.taisu.site` 별칭이 남아 있었습니다. 현재 서버 설정과 법동 도메인 연결 완료 여부는 별도 확인이 필요합니다.
 - Datadog 대시보드에서 실제 컨테이너 지표·법동 로그를 확인했습니다. 구즉 이미지에는 Java tracer와 Agent 연결 설정이 있지만 법동 Dockerfile에는 tracer가 없습니다. 컨테이너 지표 수집과 법동 APM 연결을 구분합니다.
 - Prometheus/Grafana/monitor-bot은 과거 구성입니다. 관련 파일 정리가 서버 컨테이너 중지·삭제를 의미하지 않으며 현재 실행 여부는 별도 확인합니다.
@@ -138,6 +141,8 @@
 - 로컬 검증 성공과 서버 배포 완료를 구분합니다. 인프라·env·배포·DB 구성을 변경하면 이 문서도 함께 갱신합니다.
 
 ## 9. 검증 기록과 남은 작업
+
+- #187: 로컬 actionlint·YAML·shell script 문법 검사를 통과했습니다. Caddy 전송·적용을 기존 법동 배포에 추가했습니다. 격리된 Caddy 컨테이너에서 정상 reload, 잘못된 설정 거부, reload 실패 후 복구를 확인했고 파일 bind mount도 유지됐습니다. 실제 EC2 적용·외부 HTTPS 정상화는 머지 후 배포에서 확인해야 합니다.
 
 ### 구즉 Notion DB 백업 (#166, 2026-11-06)
 
