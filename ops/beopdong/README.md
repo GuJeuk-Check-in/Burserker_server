@@ -50,13 +50,15 @@ docker compose --env-file .env --env-file .env.beopdong \
 
 서버 `.env.beopdong`에 `BEOPDONG_JWT_SECRET_KEY`를 UTF-8 기준 64바이트 이상의 무작위 값으로 준비합니다. Compose는 이를 법동 앱의 `JWT_SECRET_KEY`로 전달하며 구즉의 JWT 변수와 분리합니다. 기존 실패 작업 Re-run은 이전 커밋의 Compose를 다시 복사하므로 수정 커밋을 배포해야 합니다.
 
-DB 계정 비밀번호는 env 수정만으로 기존 MySQL에 반영되지 않습니다. DB 버전/계정 변경은 별도 작업입니다. 법동은 `ddl-auto: none`을 유지합니다. 별도의 헬스체크 컨트롤러나 정적 기본 페이지는 없으며 루트 경로는 공개하지 않습니다. 배포 검사는 JWT 키가 공백만 있거나 UTF-8 기준 64바이트 미만이면 앱 교체 전에 거부한 뒤 앱 계정 SELECT, 컨테이너 실행 여부, Hikari/Spring 기동 로그, 앱에서 Redis PING을 확인합니다. HTTP 응답과 외부 HTTPS는 검사하지 않습니다. 업무 readiness 검사는 아니며 앱 단일 교체로 짧은 중단이 있고 자동 롤백은 없습니다.
+DB 계정 비밀번호는 env 수정만으로 기존 MySQL에 반영되지 않습니다. DB 버전/계정 변경은 별도 작업입니다. 법동은 #185에서 `ddl-auto: update`로 변경해 앱 기동 시 스키마를 생성·변경하도록 설정했습니다. 별도의 헬스체크 컨트롤러나 정적 기본 페이지는 없으며 루트 경로는 공개하지 않습니다. 배포 검사는 JWT 키가 공백만 있거나 UTF-8 기준 64바이트 미만이면 앱 교체 전에 거부한 뒤 앱 계정 SELECT, 컨테이너 실행 여부, 현재 실행 이후 Hikari/Spring 기동 로그, 호스트 앱 포트의 `/purpose` 200, 앱에서 Redis PING을 확인합니다. 외부 HTTPS는 검사하지 않습니다. 앱 단일 교체로 짧은 중단이 있고 앱 자동 롤백은 없습니다.
 
 ## 도메인·관측
 
-Caddy와 Cloudflare는 앱 workflow에서 자동 변경하지 않습니다. 실제 서버 Caddyfile을 백업한 뒤 법동 도메인 두 개를 각각 host.docker.internal:8083(prod), :8082(stag)로 연결하고 설정 검증·reload·외부 HTTPS 확인을 별도로 진행합니다. 전체 호스트명의 인증서 범위를 확인하고 EC2 앱 포트를 외부에 개방하지 않습니다. 브라우저 업무 API용 CORS·인증도 별도 개발이 필요합니다. Datadog 라벨은 있지만 법동 Java tracer와 Agent 연결은 아직 추가하지 않았습니다.
+Caddyfile은 기존 법동 deploy job에서 Compose와 함께 EC2로 전송하고, 실행 중인 Caddy로 검증한 뒤 파일을 반영하고 reload합니다. 적용 전 파일을 백업하며 reload 실패 시 기존 설정으로 복구하고 배포를 중단합니다. Caddyfile만 main/develop에 push해도 기존 구즉·법동 CI/CD가 실행되며 앱 이미지도 다시 빌드·배포합니다. PR은 컴파일만, 수동 실행은 빌드만 수행하며 서버에 배포하지 않습니다.
 
-설정·로컬 검증·커밋은 실제 EC2 배포 성공을 의미하지 않습니다. 최근 EC2 SSH 조회는 시간 초과였으며 AWS CLI 로그인도 만료된 상태였습니다.
+Caddy는 운영·스테이징·게임이 공유하므로 main/develop의 전체 도메인 매핑을 함께 유지해야 합니다. Caddy 배포도 앱과 같은 EC2 배포 잠금을 사용합니다. Cloudflare DNS는 자동 변경하지 않으며 인증서 발급·외부 HTTPS 정상 응답은 적용 후 별도로 확인합니다. EC2 앱 포트를 외부에 개방하지 않습니다. 브라우저 업무 API용 CORS·인증도 별도 개발이 필요합니다. Datadog 라벨은 있지만 법동 Java tracer와 Agent 연결은 아직 추가하지 않았습니다.
+
+설정·로컬 검증·커밋은 실제 EC2 배포 성공을 의미하지 않습니다. Caddy 자동 반영 수정(#187)의 실제 적용·외부 HTTPS 정상화는 머지 후 배포에서 확인해야 합니다.
 
 ## 2026-10-21 로컬 검증
 
