@@ -2,6 +2,7 @@ package com.example.burserker.beopdong.domain.organ.service;
 
 import com.example.burserker.beopdong.domain.check_in.service.util.UsageLockService;
 import com.example.burserker.beopdong.domain.log.domain.PurposeLog;
+import com.example.burserker.beopdong.domain.log.exception.PurposeLogNotFoundException;
 import com.example.burserker.beopdong.domain.log.domain.enums.PurposeState;
 import com.example.burserker.beopdong.domain.log.domain.repository.PurposeLogRepository;
 import com.example.burserker.beopdong.domain.organ.exception.InvalidCompletedUsageException;
@@ -25,12 +26,15 @@ public class UpdateCompletedUsageService {
     private final PurposeRepository purposeRepository;
     private final UsageLockService usageLockService;
 
+    /**
+     * 완료 기록의 시간·좌석·인원을 시설 규칙에 맞게 검증한 후 관리자 수정값을 저장한다.
+     */
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void execute(Long id, UpdateCompletedUsageRequest request) {
         usageLockService.lock();
 
         PurposeLog usage = purposeLogRepository.findById(id)
-                .orElseThrow(() -> PurposeNotFoundException.EXCEPTION);
+                .orElseThrow(() -> PurposeLogNotFoundException.EXCEPTION);
 
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
 
