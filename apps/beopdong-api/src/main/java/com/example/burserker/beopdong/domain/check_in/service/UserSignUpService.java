@@ -4,8 +4,10 @@ import com.example.burserker.beopdong.domain.check_in.presentation.dto.request.U
 import com.example.burserker.beopdong.domain.check_in.presentation.dto.response.UserSignUpResponse;
 import com.example.burserker.beopdong.domain.check_in.service.util.SchoolGradeService;
 import com.example.burserker.beopdong.domain.log.domain.Log;
-import com.example.burserker.beopdong.domain.log.domain.PurposeLog;
-import com.example.burserker.beopdong.domain.log.domain.repository.PurposeLogRepository;
+import com.example.burserker.beopdong.domain.log.domain.VisitPurpose;
+import com.example.burserker.beopdong.domain.log.domain.repository.VisitPurposeRepository;
+import com.example.burserker.beopdong.domain.purpose.domain.repository.PurposeRepository;
+import com.example.burserker.beopdong.domain.purpose.exception.PurposeNotFoundException;
 import com.example.burserker.beopdong.domain.log.domain.repository.LogRepository;
 import com.example.burserker.beopdong.domain.purpose.domain.Purpose;
 import com.example.burserker.beopdong.domain.purpose.facade.PurposeFacade;
@@ -20,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -28,9 +31,13 @@ public class UserSignUpService {
     private final UserRepository userRepository;
     private final LogRepository logRepository;
     private final PurposeFacade purposeFacade;
-    private final PurposeLogRepository purposeLogRepository;
+    private final VisitPurposeRepository visitPurposeRepository;
+    private final PurposeRepository purposeRepository;
     private final SchoolGradeService schoolGradeService;
 
+    /**
+     * 회원과 방명록을 생성하고 선택한 목적 및 기본 휴식을 저장한다. 시설 신청서는 미리 만들지 않는다.
+     */
     @Transactional
     public UserSignUpResponse execute(UserSignUpRequest request) {
         if (userRepository.existsByPhone(request.phone())) {
@@ -42,7 +49,12 @@ public class UserSignUpService {
             throw RouteDetailRequiredException.EXCEPTION;
         }
 
-        List<Purpose> purposes = purposeFacade.getPurposesByIds(request.purpose());
+        List<Purpose> purposes = new ArrayList<>(purposeFacade.getPurposesByIds(request.purpose()));
+        Purpose rest = purposeRepository.findFirstByPurposeNameOrderByIdAsc("휴식")
+                .orElseThrow(() -> PurposeNotFoundException.EXCEPTION);
+        if (purposes.stream().noneMatch(purpose -> purpose.getId().equals(rest.getId()))) {
+            purposes.add(rest);
+        }
 
         int grade = schoolGradeService.validateGrade(
                 request.schoolType(), request.grade()
@@ -68,18 +80,11 @@ public class UserSignUpService {
         logRepository.save(log);
 
         for(Purpose purpose : purposes) {
-            String purposeName = purpose.getPurposeName();
-
-            if("인터넷".equals(purposeName) ||
-                    "노래방".equals(purposeName) ||
-                    "탁구".equals(purposeName)) {
-                PurposeLog purposeLog = PurposeLog.create(log, purpose);
-                purposeLogRepository.save(purposeLog);
-            }
+            visitPurposeRepository.save(VisitPurpose.create(log, purpose));
         }
 
         user.increaseVisitCount();
 
-        return UserSignUpResponse.from(purposes);
+        return UserSignUpResponse.from(log.getId(), purposes);
     }
 }

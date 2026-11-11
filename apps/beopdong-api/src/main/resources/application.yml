@@ -12,11 +12,16 @@ spring:
       database: ${REDIS_DATABASE:1}
       connect-timeout: 2s
       timeout: 2s
+  flyway:
+    locations: classpath:db/migration
+    baseline-on-migrate: false
+    baseline-version: 1
+    clean-disabled: true
   jpa:
     open-in-view: false
     hibernate:
-      # 기존 로컬 스키마를 사용하며 기동 중 테이블을 생성하거나 수정하지 않습니다.
-      ddl-auto: update
+      # 스키마 변경은 법동 전용 Flyway 마이그레이션으로 관리합니다.
+      ddl-auto: none
 
 server:
   # IDE 로컬 실행은 env에서 8082, 컨테이너 기본 실행은 8080을 사용합니다.

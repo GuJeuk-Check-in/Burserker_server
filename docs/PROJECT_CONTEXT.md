@@ -5,6 +5,13 @@
 
 ## 1. 먼저 확인할 사항
 
+- 2026-11-11 법동 Flyway V1/V2를 추가하고 사용자 승인으로 로컬 localhost:3306/BeopDong에 적용했습니다. 스테이징·운영 DB에는 적용하지 않았습니다.
+- 로컬 적용: 회원 15명·방명록 15건·purpose_log 29건·옛 log_purpose 4건을 보존했습니다. visit_purpose 48건, purpose_usage와 참가자 각 9건을 생성했고, Hibernate 스키마 검증이 통과했습니다. 백업은 저장소 밖 C:/env/backups/beopdong에 있습니다.
+- 법동은 ddl-auto: none을 유지하고 법동 전용 db/migration을 사용합니다. 기존 DB 최초 전환은 구조 확인·백업 후 version 1 baseline이 필요합니다. 기본 자동 baseline과 clean은 비활성화합니다.
+- 데이터 이전과 적용·복구 절차는 [법동 DB 마이그레이션](../ops/beopdong/MIGRATION.md)을 확인합니다. 개인 환경변수나 DB dump를 출력·커밋하지 않습니다.
+- 방문 인증은 협의 전까지 보류 상태입니다. 코드 변경·빌드 성공을 실제 서버 적용 완료로 해석하지 않습니다.
+- 임시 MySQL 8.0에서 V1/V2·기존 데이터 이전·위험 데이터 거부·Hibernate 스키마 검증 및 실제 신청 동시성/재이용을 검증했습니다. 임시 검증 후 로컬 BeopDong 적용도 완료했습니다. 기존 연결 테스트는 Flyway를 비활성화합니다.
+
 - 구즉 운영 DB의 Notion 자동 백업(#166)을 EC2에 설치·활성화했습니다. 실제 파일 첨부·격리 복원·재다운로드 해시 검증을 완료했으며 일정과 한계는 9절을 확인합니다.
 - 2026-11-10 EC2의 실제 Caddyfile과 실행 중인 설정에 법동 도메인이 없는 것을 확인했습니다. 법동 외부 요청은 525, 내부 `/purpose` 요청은 `beopdong_stag.purpose` 테이블 누락으로 500이었습니다.
 - 2026-11-11 develop `f6f4fe1e`의 법동 CI/CD는 성공했지만 외부 법동 stag는 여전히 525입니다. 해당 커밋의 workflow에는 Caddyfile 전송·reload가 없었습니다. 실제 서버 반영은 #187에서 추가하며, 머지·배포 후 HTTPS 정상 응답을 확인해야 합니다. 이번 서버 재확인은 SSH 시간 초과·AWS 인증 만료로 진행하지 못했습니다.
@@ -26,7 +33,7 @@
 - 공통: Java 17, Spring Boot 3.5.6, Gradle, MySQL 8, Redis 7.2, Spring Security/JWT, JPA.
 - 구즉 추가 구성: QueryDSL, Flyway, Apache POI, Datadog Java tracer.
 - Java 패키지: `com.example.burserker.gujeuk`, `com.example.burserker.beopdong`.
-- 법동은 구즉 클래스·Flyway SQL을 공유하지 않습니다. #185에서 `ddl-auto: update`로 변경해 앱 기동 시 스키마를 생성·변경하도록 설정했습니다.
+- 법동은 구즉 클래스·Flyway SQL을 공유하지 않습니다. #185의 자동 DDL 설정은 이번 #179에서 법동 전용 Flyway V1/V2와 `ddl-auto: none`으로 대체합니다. 실제 DB 적용 범위는 1절과 법동 마이그레이션 안내를 확인합니다.
 
 ```bash
 ./gradlew :apps:gujeuk-api:bootJar

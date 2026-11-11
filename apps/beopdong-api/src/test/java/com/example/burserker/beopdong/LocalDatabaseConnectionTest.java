@@ -16,7 +16,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 // 로컬 환경변수를 명시적으로 제공한 경우에만 실제 MySQL을 사용합니다.
 // CI의 일반 빌드에는 개발자의 DB나 비밀값이 필요하지 않습니다.
 @EnabledIfEnvironmentVariable(named = "BEOPDONG_LOCAL_DB_TEST", matches = "true")
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
+// 연결 확인만으로 기존 로컬 DB의 마이그레이션이 실행되지 않도록 막습니다.
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE, properties = "spring.flyway.enabled=false")
 class LocalDatabaseConnectionTest {
 
     @Autowired
