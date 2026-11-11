@@ -20,4 +20,14 @@ public class PurposeFacade {
         return purposeRepository.findById(purposeId)
                 .orElseThrow(() -> PurposeNotFoundException.EXCEPTION);
     }
+
+    public Purpose getPurposeWithLock(Long purposeId, Long organId) {
+        return purposeRepository.findWithLockByIdAndOrganId(purposeId, organId)
+                .orElseThrow(() -> PurposeNotFoundException.EXCEPTION);
+    }
+
+    public Purpose getPurposeByIdAndOrganId(Long purposeId, Long organId) {
+        return purposeRepository.findByIdAndOrganId(purposeId, organId)
+                .orElseThrow(() -> PurposeNotFoundException.EXCEPTION);
+    }
 }

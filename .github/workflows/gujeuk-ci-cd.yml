@@ -13,6 +13,7 @@ on:
       # ops/gujeuk 는 배포 job 이 docker-compose.aws.yml 을 EC2 로 복사하므로 제외하지 않는다.
       - "monitor-bot/**"
       - "ops/monitoring/**"
+      - "ops/gujeuk/backup/**"
       - ".github/ISSUE_TEMPLATE/**"
   pull_request:
     branches: ["main", "develop"]

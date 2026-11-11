@@ -1,0 +1,11 @@
+[Unit]
+Description=Create final Gujeuk dump at 19:30 KST
+
+[Timer]
+OnCalendar=*-*-* 19:30:00 Asia/Seoul
+Unit=gujeuk-backup@dump.service
+Persistent=true
+AccuracySec=1s
+
+[Install]
+WantedBy=timers.target

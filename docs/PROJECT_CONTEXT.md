@@ -1,6 +1,6 @@
 # 구즉·법동 프로젝트 현황
 
-> 갱신일: 2026-11-11. 아래 인프라 관측은 각 항목의 확인 시점 기준이며, 저장소 변경과 서버 적용을 구분합니다.
+> 최종 갱신: 2026-11-11. 영역별 확인 시점과 저장소 설정·실제 서버 상태를 구분합니다.
 > 과거 변경 이력은 Git에서 확인하고, 이 문서에는 현재 구조와 작업에 필요한 내용만 유지합니다.
 
 ## 1. 먼저 확인할 사항
@@ -12,9 +12,11 @@
 - 방문 인증은 협의 전까지 보류 상태입니다. 코드 변경·빌드 성공을 실제 서버 적용 완료로 해석하지 않습니다.
 - 임시 MySQL 8.0에서 V1/V2·기존 데이터 이전·위험 데이터 거부·Hibernate 스키마 검증 및 실제 신청 동시성/재이용을 검증했습니다. 임시 검증 후 로컬 BeopDong 적용도 완료했습니다. 기존 연결 테스트는 Flyway를 비활성화합니다.
 
-- 현재 작업은 `chore/#154-beopdong-CaddySetting`의 법동 도메인 매핑입니다. 저장소 Caddyfile만 수정했으며 서버 프록시에는 아직 적용하지 않았습니다.
+- 구즉 운영 DB의 Notion 자동 백업(#166)을 EC2에 설치·활성화했습니다. 실제 파일 첨부·격리 복원·재다운로드 해시 검증을 완료했으며 일정과 한계는 9절을 확인합니다.
+- 2026-11-10 EC2의 실제 Caddyfile과 실행 중인 설정에 법동 도메인이 없는 것을 확인했습니다. 법동 외부 요청은 525, 내부 `/purpose` 요청은 `beopdong_stag.purpose` 테이블 누락으로 500이었습니다.
+- 2026-11-11 develop `f6f4fe1e`의 법동 CI/CD는 성공했지만 외부 법동 stag는 여전히 525입니다. 해당 커밋의 workflow에는 Caddyfile 전송·reload가 없었습니다. 실제 서버 반영은 #187에서 추가하며, 머지·배포 후 HTTPS 정상 응답을 확인해야 합니다. 이번 서버 재확인은 SSH 시간 초과·AWS 인증 만료로 진행하지 못했습니다.
 - 2026-10-29 Datadog 법동 스테이징 로그에서 JWT 키 길이 검사 실패와 앱 종료·재기동 반복을 확인했습니다. EC2 전체 CPU 사용량을 모두 법동 때문이라고 단정하지 않습니다.
-- 최근 EC2 SSH 접속은 시간 초과되었습니다. 서버 env, 재시작 횟수, 현재 운영 이미지·메모리·디스크 상태는 재확인이 필요합니다.
+- 2026-11-05 일반 EC2 SSH는 시간 초과였지만 AWS SSM을 통한 SSH 접속은 성공했습니다. 백업 작업에서 확인하지 않은 서버 env·앱 운영 상태는 별도 재확인이 필요합니다.
 - API·인증의 기준은 컨트롤러·DTO·SecurityConfig입니다. 설명 문서나 과거 배포 결과만으로 현재 상태를 판단하지 않습니다.
 
 ## 2. 모노레포 구조
@@ -31,7 +33,7 @@
 - 공통: Java 17, Spring Boot 3.5.6, Gradle, MySQL 8, Redis 7.2, Spring Security/JWT, JPA.
 - 구즉 추가 구성: QueryDSL, Flyway, Apache POI, Datadog Java tracer.
 - Java 패키지: `com.example.burserker.gujeuk`, `com.example.burserker.beopdong`.
-- 법동은 구즉 클래스·Flyway SQL을 공유하지 않으며 `ddl-auto: none`을 사용합니다.
+- 법동은 구즉 클래스·Flyway SQL을 공유하지 않습니다. #185의 자동 DDL 설정은 이번 #179에서 법동 전용 Flyway V1/V2와 `ddl-auto: none`으로 대체합니다. 실제 DB 적용 범위는 1절과 법동 마이그레이션 안내를 확인합니다.
 
 ```bash
 ./gradlew :apps:gujeuk-api:bootJar
@@ -93,14 +95,16 @@
 |---|---|---|
 | workflow | `.github/workflows/gujeuk-ci-cd.yml` | `.github/workflows/beopdong-ci-cd.yml` |
 | PR | Java 컴파일 | Java 컴파일 |
-| develop/main push | JAR·이미지 빌드 → GHCR → stag/prod | JAR·이미지 빌드 → GHCR → stag/prod |
+| develop/main push | JAR·이미지 빌드 → GHCR → stag/prod | JAR·이미지 빌드 → GHCR → 공용 Caddy 적용 → stag/prod 앱 배포 |
 | 수동 실행 | 빌드, 배포 없음 | 빌드, 배포 없음 |
-| 내부 기동 확인 | 공개 `/purpose/all` | 컨테이너 실행 + Hikari/Spring 기동 로그 + Redis PING |
+| 내부 기동 확인 | 공개 `/purpose/all` | `/purpose` 200 + 컨테이너 실행 + Hikari/Spring 기동 로그 + Redis PING |
 | 외부 HTTPS 확인 | 공개 도메인의 `/purpose/all` 200 | 현재 workflow에 없음 |
 
 - workflow의 경로 필터에 따라 기관별 실행 여부가 결정됩니다. 공통 빌드·모듈 변경은 두 workflow에 영향을 줄 수 있습니다.
+- Caddyfile만 main/develop에 push해도 기존 구즉·법동 CI/CD가 실행되며 앱 이미지도 다시 빌드·배포합니다. PR은 컴파일만, 수동 실행은 빌드만 수행하고 서버에 배포하지 않습니다.
+- 법동 deploy job은 Compose와 Caddyfile을 함께 전송하고 기존 EC2 배포 잠금 안에서 Caddy 검증 → 파일 백업·덮어쓰기 → reload → 기존 앱 배포 순서로 실행합니다. reload 실패 시 기존 파일·설정으로 복구하고 중단합니다. main/develop이 하나의 Caddy를 공유하므로 전체 도메인 매핑을 두 브랜치에서 일관되게 관리해야 합니다.
 - 법동은 루트 HTTP 응답 검사를 하지 않습니다. 별도 헬스체크 컨트롤러·정적 기본 페이지·루트 공개 설정은 추가하지 않습니다.
-- 법동 배포는 DB 계정 SELECT, 컨테이너 실행 여부, Hikari/Spring 기동 로그, 앱에서 Redis PING으로 확인합니다. 실제 HTTP 요청 처리·외부 HTTPS는 검사 범위 밖입니다.
+- 법동 배포는 DB 계정 SELECT, 컨테이너 실행 여부, 현재 실행 이후 Hikari/Spring 기동 로그, 호스트 앱 포트의 `/purpose` 200, 앱에서 Redis PING으로 확인합니다. 외부 HTTPS는 검사 범위 밖입니다.
 - 구즉에는 DB 연결 유효성을 검사하는 공개 `/common/health/ready`도 있지만 현재 CI/CD 검사 경로는 `/purpose/all`입니다.
 - env·이미지·서비스 이름 검증을 유지하고 전체 `down`, `--remove-orphans`, 볼륨 삭제를 배포에 추가하지 않습니다.
 
@@ -113,12 +117,12 @@
 | 구즉 스테이징 API | `https://aws-stag.oijwef098234.com` |
 | 구즉 프론트 | `https://gujeuk-check-in-fe.pages.dev` |
 | 구즉 스테이징 프론트 | `https://gujeuk-check-in-develop.pages.dev` |
-| 법동 운영 API 설정 도메인 | `https://aws.beopdong-api.oijwef098234.com` |
-| 법동 스테이징 API 설정 도메인 | `https://aws.beopdong-stag-api.oijwef098234.com` |
+| 법동 운영 API 설정 도메인 | `https://aws-beopdong-api.oijwef098234.com` |
+| 법동 스테이징 API 설정 도메인 | `https://aws-beopdong-stag-api.oijwef098234.com` |
 | 게임 API | `https://game-api.oijwef098234.com` |
 | Caddy | `/home/ubuntu/gujeuk-aws/proxy` |
 
-- Caddy는 도메인별로 호스트 앱 포트에 전달합니다. 저장소 `ops/gujeuk/Caddyfile`은 법동 운영 8083, 스테이징 8082도 연결하며 앱 CI/CD가 프록시나 DNS를 자동 변경하지 않습니다. 서버 적용과 다단계 서브도메인의 Cloudflare 인증서 설정은 별도로 확인해야 합니다.
+- Caddy는 도메인별로 호스트 앱 포트에 전달합니다. 저장소 `ops/gujeuk/Caddyfile`은 법동 운영 8083, 스테이징 8082도 연결합니다. #187의 법동 workflow는 기존 deploy job에서 Caddy 설정 전송·검증·reload를 수행하며 DNS는 변경하지 않습니다. 실제 적용·인증서 발급·외부 HTTPS 성공은 배포 후 확인해야 합니다.
 - 과거 서버에는 제거된 `api.taisu.site`, `api-stag.taisu.site` 별칭이 남아 있었습니다. 현재 서버 설정과 법동 도메인 연결 완료 여부는 별도 확인이 필요합니다.
 - Datadog 대시보드에서 실제 컨테이너 지표·법동 로그를 확인했습니다. 구즉 이미지에는 Java tracer와 Agent 연결 설정이 있지만 법동 Dockerfile에는 tracer가 없습니다. 컨테이너 지표 수집과 법동 APM 연결을 구분합니다.
 - Prometheus/Grafana/monitor-bot은 과거 구성입니다. 관련 파일 정리가 서버 컨테이너 중지·삭제를 의미하지 않으며 현재 실행 여부는 별도 확인합니다.
@@ -144,6 +148,19 @@
 - 로컬 검증 성공과 서버 배포 완료를 구분합니다. 인프라·env·배포·DB 구성을 변경하면 이 문서도 함께 갱신합니다.
 
 ## 9. 검증 기록과 남은 작업
+
+- #187: 로컬 actionlint·YAML·shell script 문법 검사를 통과했습니다. Caddy 전송·적용을 기존 법동 배포에 추가했습니다. 격리된 Caddy 컨테이너에서 정상 reload, 잘못된 설정 거부, reload 실패 후 복구를 확인했고 파일 bind mount도 유지됐습니다. 실제 EC2 적용·외부 HTTPS 정상화는 머지 후 배포에서 확인해야 합니다.
+
+### 구즉 Notion DB 백업 (#166, 2026-11-06)
+
+- EC2 `/home/ubuntu/gujeuk-notion-backup`에 설치했다. systemd가 KST 자정 페이지 생성, 01:00~19:00 매 정각 전체 덤프, 19:30 최종 덤프, 매 5분 기존 파일 업로드 재시도를 실행한다. 노트북·SSH 연결 유지에 의존하지 않는다.
+- `gujeuk_prod`만 덤프한다. 게임 DB와 binlog는 수집하지 않고 운영 DB 수정·복원·기존 앱 재시작을 수행하지 않는다. 파일은 `data/YYYY-MM-DD/`에 보관한 후 Notion API로 보낸다.
+- 페이지 제목은 `YYYY.MM.DD / [PROD]Gujeuk_DB`다. 본문은 전체 DUMP 파일 → 시간대별 DUMP 파일(01:00~19:00) → 오류 내용이다. 상태·시간별 덤프 수·최종 덤프 시각·오류 내용 속성을 제거하고 오류는 본문에 기록한다. 기존 첨부는 보존한다.
+- 백업 실패 시 임시 파일을 완료로 취급하지 않고 업로드 실패 시 완료 파일을 재사용한다. 배포·백업 잠금과 디스크 여유 검사, 단일 DB 지정, 비공개 토큰을 유지한다. 분할 업로드·설치 시 복원 강제·별도 운영 복원 검증 도구를 제거했다.
+- 사용자 요청으로 이번 PR의 백업 테스트 소스와 테스트 전용 CI를 제외했다. 기존 실제 운영 초기·최종 파일 2개는 Notion 첨부·격리 복원·재다운로드 SHA-256 검증을 마쳤다. 11월 6일 자정 페이지가 실제 자동 생성된 것을 확인했다.
+- 토큰·실제 설정·덤프는 커밋하지 않는다. Notion 404는 연결의 콘텐츠 접근 권한을 부여해 해결했다. Mac의 CA 경로 문제는 `SSL_CERT_FILE=/etc/ssl/cert.pem`으로 검증을 유지해 해결했다. 현재 Notion 파일당 한도는 5MiB다.
+- 후속 리뷰 반영: 배포 잠금은 로컬 덤프 생성 구간에서만 유지하고 Notion 전송 전에 해제한다. 백업 간 중복 방지 잠금은 유지한다. 과거 오류 기록은 보존하되 이틀 전 이전 오류 날짜만으로는 Notion 갱신을 반복하지 않는다. 이 후속 수정은 아직 EC2에 적용하지 않았다.
+- PR #167의 머지와 서버 설치는 별개다. 서버 코드와 Notion 양식을 반영하고 재시도 서비스의 종료 코드 0을 확인했다. 5분 일정과 충돌한 시간당 4회 실행 제한을 제거했다. 전체 덤프는 무손실·PITR 보장이 아니며 야간 간격은 5시간 30분이다. 자동 삭제·외부 누락 알림은 없다.
 
 - #135: 과거 로컬 격리 환경에서 Compose 결합, 법동 DB/Redis 연결, 구즉 자원 유지 검증을 수행했습니다. 임시 구즉 앱은 경량 stand-in이었으며 업무 API 검증은 아닙니다.
 - #142: 과거 로컬 예약 마이그레이션·빌드를 검증했습니다. 요청에 따라 해당 작업의 구즉 테스트 소스는 제거했고 법동 연결 테스트는 유지합니다.

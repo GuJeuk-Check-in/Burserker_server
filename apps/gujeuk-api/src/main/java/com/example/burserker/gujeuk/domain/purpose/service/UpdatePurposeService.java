@@ -1,5 +1,6 @@
 package com.example.burserker.gujeuk.domain.purpose.service;
 
+import com.example.burserker.gujeuk.domain.organ.facade.OrganFacade;
 import com.example.burserker.gujeuk.domain.purpose.facade.PurposeFacade;
 import com.example.burserker.gujeuk.domain.purpose.presentation.dto.request.PurposeRequest;
 import com.example.burserker.gujeuk.domain.purpose.domain.Purpose;
@@ -11,10 +12,13 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UpdatePurposeService {
     private final PurposeFacade purposeFacade;
+    private final OrganFacade organFacade;
 
     @Transactional
-    public void execute(Long id, PurposeRequest purposeRequest) {
-        Purpose purpose = purposeFacade.getPurposeById(id);
+    public void execute(Long organId, Long id, PurposeRequest purposeRequest) {
+        organFacade.getOrganById(organId);
+
+        Purpose purpose = purposeFacade.getPurposeByIdAndOrganId(id, organId);
 
         purpose.updatePurpose(purposeRequest.purpose(), purposeRequest.reservationStatus());
     }

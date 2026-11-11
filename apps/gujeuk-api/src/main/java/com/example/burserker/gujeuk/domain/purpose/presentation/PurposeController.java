@@ -33,8 +33,12 @@ public class PurposeController {
     }
 
     @PatchMapping("/{id}")
-    public void updatePurpose(@PathVariable Long id, @RequestBody @Valid PurposeRequest purposeRequest) {
-        updatePurposeService.execute(id, purposeRequest);
+    public void updatePurpose(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long id,
+            @RequestBody @Valid PurposeRequest purposeRequest
+    ) {
+        updatePurposeService.execute(userDetails.organ().getId(), id, purposeRequest);
     }
 
     @DeleteMapping("/{id}")
