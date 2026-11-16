@@ -1,6 +1,5 @@
 package com.example.burserker.beopdong.domain.organ.service;
 
-import com.example.burserker.beopdong.domain.check_in.service.util.UsageLockService;
 import com.example.burserker.beopdong.domain.log.domain.PurposeLog;
 import com.example.burserker.beopdong.domain.log.exception.PurposeLogNotFoundException;
 import com.example.burserker.beopdong.domain.log.domain.enums.PurposeState;
@@ -12,7 +11,6 @@ import com.example.burserker.beopdong.domain.purpose.domain.repository.PurposeRe
 import com.example.burserker.beopdong.domain.purpose.exception.PurposeNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -24,15 +22,12 @@ public class UpdateCompletedUsageService {
 
     private final PurposeLogRepository purposeLogRepository;
     private final PurposeRepository purposeRepository;
-    private final UsageLockService usageLockService;
 
     /**
      * 완료 기록의 시간·좌석·인원을 시설 규칙에 맞게 검증한 후 관리자 수정값을 저장한다.
      */
-    @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Transactional
     public void execute(Long id, UpdateCompletedUsageRequest request) {
-        usageLockService.lock();
-
         PurposeLog usage = purposeLogRepository.findById(id)
                 .orElseThrow(() -> PurposeLogNotFoundException.EXCEPTION);
 

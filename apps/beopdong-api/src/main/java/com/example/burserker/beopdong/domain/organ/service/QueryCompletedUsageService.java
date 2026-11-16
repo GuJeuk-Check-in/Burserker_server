@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -24,7 +23,7 @@ public class QueryCompletedUsageService {
     /**
      * 페이지 조건을 검사하고 만료 회차를 정리한 뒤, 선택한 시설의 완료 이력을 최신순으로 조회한다.
      */
-    @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Transactional
     public CompletedUsagePageResponse execute(int page, int size, Long purpose) {
         if (page < 0 || size != 30) {
             throw InvalidUsagePageException.EXCEPTION;

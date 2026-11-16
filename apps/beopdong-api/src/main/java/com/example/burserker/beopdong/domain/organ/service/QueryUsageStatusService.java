@@ -6,7 +6,6 @@ import com.example.burserker.beopdong.domain.log.service.CompletePurposeUsageSer
 import com.example.burserker.beopdong.domain.organ.presentation.dto.response.UsageStatusResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
@@ -26,7 +25,7 @@ public class QueryUsageStatusService {
     /**
      * 만료 회차를 정리한 뒤 사용 중인 컴퓨터 좌석과 노래방·탁구의 팀 현황을 반환한다.
      */
-    @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Transactional
     public UsageStatusResponse execute() {
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
 
