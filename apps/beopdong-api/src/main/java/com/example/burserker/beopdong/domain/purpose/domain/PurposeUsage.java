@@ -1,8 +1,8 @@
-package com.example.burserker.beopdong.domain.log.domain;
+package com.example.burserker.beopdong.domain.purpose.domain;
 
+import com.example.burserker.beopdong.domain.log.domain.Log;
 import com.example.burserker.beopdong.domain.check_in.exception.InvalidFormPurposeException;
 import com.example.burserker.beopdong.domain.check_in.exception.UsageAlreadyActiveException;
-import com.example.burserker.beopdong.domain.purpose.domain.Purpose;
 import com.example.burserker.beopdong.global.entity.BaseIdEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

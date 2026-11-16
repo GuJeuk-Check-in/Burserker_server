@@ -1,6 +1,6 @@
-package com.example.burserker.beopdong.domain.log.domain.repository;
+package com.example.burserker.beopdong.domain.purpose.domain.repository;
 
-import com.example.burserker.beopdong.domain.log.domain.PurposeUsage;
+import com.example.burserker.beopdong.domain.purpose.domain.PurposeUsage;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
