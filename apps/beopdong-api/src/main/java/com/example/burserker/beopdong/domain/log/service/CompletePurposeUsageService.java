@@ -35,7 +35,7 @@ public class CompletePurposeUsageService {
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void execute(LocalDateTime now) {
         usageLockService.lock();
-        for (PurposeUsage usage : purposeUsageRepository.findAllByCompletedFalseAndEndAtLessThanEqual(now)) {
+        for (PurposeUsage usage : purposeUsageRepository.findExpiredUsages(now)) {
             purposeLogRepository.save(PurposeLog.complete(usage));
             usage.complete();
         }

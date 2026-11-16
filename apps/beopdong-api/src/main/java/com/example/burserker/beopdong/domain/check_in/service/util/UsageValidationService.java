@@ -26,7 +26,7 @@ public class UsageValidationService {
      * 종료 시각이 지나지 않은 회차가 같은 컴퓨터 좌석을 점유하면 신청을 거절한다.
      */
     public void validatePcSeat(Long purposeId, int seat, LocalDateTime now) {
-        if (purposeUsageRepository.existsByPurposeIdAndSeatAndCompletedFalseAndEndAtAfter(purposeId, seat, now)) {
+        if (purposeUsageRepository.existsActiveSeat(purposeId, seat, now)) {
             throw UsageAlreadyActiveException.EXCEPTION;
         }
     }

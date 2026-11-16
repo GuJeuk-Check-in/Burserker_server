@@ -33,7 +33,7 @@ public class QueryUsageStatusService {
         completePurposeUsageService.execute(now);
 
         List<PurposeUsage> usages = purposeUsageRepository
-                .findAllByCompletedFalseAndEndAtAfter(now);
+                .findActiveUsages(now);
 
         List<UsageStatusResponse.PcUsage> pc = new ArrayList<>();
         UsageStatusResponse.RoomUsage pingPong = null;

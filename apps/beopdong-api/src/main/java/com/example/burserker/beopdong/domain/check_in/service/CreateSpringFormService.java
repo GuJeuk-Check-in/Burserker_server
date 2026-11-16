@@ -53,7 +53,7 @@ public class CreateSpringFormService {
         usageValidationService.validateUser(log.getUser().getId(), now);
 
         PurposeUsage usage = purposeUsageRepository
-                .findFirstByPurposeIdAndCompletedFalseAndEndAtAfterOrderByIdAsc(purpose.getId(), now)
+                .findActiveRoomUsage(purpose.getId(), now)
                 .orElse(null);
 
         if (usage == null) {

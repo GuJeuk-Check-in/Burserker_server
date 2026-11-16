@@ -21,14 +21,45 @@ public interface PurposeUsageRepository extends JpaRepository<PurposeUsage, Long
             """)
     boolean existsActiveUser(@Param("userId") Long userId, @Param("now") LocalDateTime now);
 
-    boolean existsByPurposeIdAndSeatAndCompletedFalseAndEndAtAfter(Long purposeId, Integer seat, LocalDateTime now);
+    @Query("""
+            SELECT COUNT(usage) > 0
+            FROM PurposeUsage usage
+            WHERE usage.purpose.id = :purposeId
+              AND usage.seat = :seat
+              AND usage.completed = false
+              AND usage.endAt > :now
+            """)
+    boolean existsActiveSeat(@Param("purposeId") Long purposeId, @Param("seat") Integer seat, @Param("now") LocalDateTime now);
 
     @EntityGraph(attributePaths = {"purpose", "members", "members.log"})
-    Optional<PurposeUsage> findFirstByPurposeIdAndCompletedFalseAndEndAtAfterOrderByIdAsc(Long purposeId, LocalDateTime now);
+    @Query("""
+            SELECT usage
+            FROM PurposeUsage usage
+            WHERE usage.id = (
+                SELECT MIN(active.id)
+                FROM PurposeUsage active
+                WHERE active.purpose.id = :purposeId
+                  AND active.completed = false
+                  AND active.endAt > :now
+            )
+            """)
+    Optional<PurposeUsage> findActiveRoomUsage(@Param("purposeId") Long purposeId, @Param("now") LocalDateTime now);
 
     @EntityGraph(attributePaths = {"purpose", "members", "members.log"})
-    List<PurposeUsage> findAllByCompletedFalseAndEndAtAfter(LocalDateTime now);
+    @Query("""
+            SELECT usage
+            FROM PurposeUsage usage
+            WHERE usage.completed = false
+              AND usage.endAt > :now
+            """)
+    List<PurposeUsage> findActiveUsages(@Param("now") LocalDateTime now);
 
     @EntityGraph(attributePaths = {"purpose", "members", "members.log"})
-    List<PurposeUsage> findAllByCompletedFalseAndEndAtLessThanEqual(LocalDateTime now);
+    @Query("""
+            SELECT usage
+            FROM PurposeUsage usage
+            WHERE usage.completed = false
+              AND usage.endAt <= :now
+            """)
+    List<PurposeUsage> findExpiredUsages(@Param("now") LocalDateTime now);
 }
