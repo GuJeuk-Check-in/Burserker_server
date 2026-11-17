@@ -58,7 +58,7 @@ public class PurposeLog extends BaseIdEntity {
     }
 
     public void updateUsage(PurposeUsage usage) {
-        this.log = usage.getMembers().get(0).getLog();
+        this.log = usage.getLogs().get(0);
         this.purpose = usage.getPurpose();
         this.name = usage.getName();
         this.seat = usage.getSeat();

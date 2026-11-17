@@ -23,7 +23,7 @@ public class EndPurposeUsageService {
 
     @Transactional
     public void execute(Long usageId) {
-        PurposeUsage usage = purposeUsageRepository.findUsageWithMembers(usageId)
+        PurposeUsage usage = purposeUsageRepository.findUsageWithLogs(usageId)
                 .orElseThrow(() -> PurposeUsageNotFoundException.EXCEPTION);
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
         PurposeLog history = purposeLogRepository.findByPurposeUsageIdAndPurposeState(usageId, PurposeState.PENDING)

@@ -13,11 +13,11 @@ import java.util.Optional;
 public interface PurposeUsageRepository extends JpaRepository<PurposeUsage, Long> {
 
     @Query("""
-            SELECT COUNT(member) > 0
-            FROM PurposeUsageMember member
-            WHERE member.log.user.id = :userId
-              AND member.purposeUsage.completed = false
-              AND member.purposeUsage.endAt > :now
+            SELECT COUNT(usage) > 0
+            FROM PurposeUsage usage JOIN usage.logs visitor
+            WHERE visitor.user.id = :userId
+              AND usage.completed = false
+              AND usage.endAt > :now
             """)
     boolean existsActiveUser(@Param("userId") Long userId, @Param("now") LocalDateTime now);
 
@@ -31,11 +31,11 @@ public interface PurposeUsageRepository extends JpaRepository<PurposeUsage, Long
             """)
     boolean existsActiveSeat(@Param("purposeId") Long purposeId, @Param("seat") Integer seat, @Param("now") LocalDateTime now);
 
-    @EntityGraph(attributePaths = {"purpose", "members", "members.log"})
+    @EntityGraph(attributePaths = {"purpose", "logs"})
     @Query("SELECT usage FROM PurposeUsage usage WHERE usage.id = :id")
-    Optional<PurposeUsage> findUsageWithMembers(@Param("id") Long id);
+    Optional<PurposeUsage> findUsageWithLogs(@Param("id") Long id);
 
-    @EntityGraph(attributePaths = {"purpose", "members", "members.log"})
+    @EntityGraph(attributePaths = {"purpose", "logs"})
     @Query("""
             SELECT usage
             FROM PurposeUsage usage
@@ -49,7 +49,7 @@ public interface PurposeUsageRepository extends JpaRepository<PurposeUsage, Long
             """)
     Optional<PurposeUsage> findActiveRoomUsage(@Param("purposeId") Long purposeId, @Param("now") LocalDateTime now);
 
-    @EntityGraph(attributePaths = {"purpose", "members", "members.log"})
+    @EntityGraph(attributePaths = {"purpose", "logs"})
     @Query("""
             SELECT usage
             FROM PurposeUsage usage

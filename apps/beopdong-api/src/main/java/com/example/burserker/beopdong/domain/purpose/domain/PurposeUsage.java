@@ -44,9 +44,13 @@ public class PurposeUsage extends BaseIdEntity {
     private boolean completed;
 
     @Builder.Default
-    @OneToMany(mappedBy = "purposeUsage", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @OrderBy("joinedAt ASC, id ASC")
-    private List<PurposeUsageMember> members = new ArrayList<>();
+    @ManyToMany
+    @JoinTable(name = "purpose_usage_member",
+            joinColumns = @JoinColumn(name = "purpose_usage_id", nullable = false),
+            inverseJoinColumns = @JoinColumn(name = "log_id", nullable = false),
+            uniqueConstraints = @UniqueConstraint(name = "uk_purpose_usage_member", columnNames = {"purpose_usage_id", "log_id"}))
+    @OrderBy("id ASC")
+    private List<Log> logs = new ArrayList<>();
 
     /**
      * 컴퓨터 한 좌석에 첫 참가자를 등록하고 신청 시각부터 40분의 회차를 생성한다.
@@ -54,7 +58,7 @@ public class PurposeUsage extends BaseIdEntity {
     public static PurposeUsage createPc(Purpose purpose, Log log, int seat, String usePurpose, LocalDateTime now) {
         PurposeUsage usage = PurposeUsage.builder().purpose(purpose).seat(seat).usePurpose(usePurpose)
                 .startAt(now).endAt(now.plusMinutes(40)).build();
-        usage.addMember(log, now);
+        usage.addLog(log);
         return usage;
     }
 
@@ -71,7 +75,7 @@ public class PurposeUsage extends BaseIdEntity {
             throw InvalidFormPurposeException.EXCEPTION;
         }
         PurposeUsage usage = PurposeUsage.builder().purpose(purpose).startAt(now).endAt(now.plusMinutes(minutes)).build();
-        usage.addMember(log, now);
+        usage.addLog(log);
         return usage;
     }
 
@@ -88,20 +92,20 @@ public class PurposeUsage extends BaseIdEntity {
             throw InvalidFormPurposeException.EXCEPTION;
         }
         if (completed || !now.isBefore(endAt) || count >= capacity
-                || members.stream().anyMatch(member -> member.getLog().getUser().getId().equals(log.getUser().getId()))) {
+                || logs.stream().anyMatch(visitor -> visitor.getUser().getId().equals(log.getUser().getId()))) {
             throw UsageAlreadyActiveException.EXCEPTION;
         }
-        addMember(log, now);
+        addLog(log);
         if ("노래방".equals(purpose.getPurposeName())) {
             this.endAt = startAt.plusMinutes(30);
         }
     }
 
     /**
-     * 참가자의 방명록과 합류 시각을 연결하고 회차 인원을 한 명 늘린다.
+     * 참가자의 방명록을 이용에 연결하고 인원을 한 명 늘린다.
      */
-    private void addMember(Log log, LocalDateTime now) {
-        members.add(PurposeUsageMember.create(this, log, now));
+    private void addLog(Log log) {
+        logs.add(log);
         count++;
     }
 
@@ -109,7 +113,7 @@ public class PurposeUsage extends BaseIdEntity {
      * 현재 참가자 전원의 방명록 이름을 순서대로 연결하여 기존 문자열 응답 형식을 유지한다.
      */
     public String getName() {
-        return members.stream().map(member -> member.getLog().getName()).collect(Collectors.joining(", "));
+        return logs.stream().map(Log::getName).collect(Collectors.joining(", "));
     }
 
     public void endEarly(LocalDateTime now) {
