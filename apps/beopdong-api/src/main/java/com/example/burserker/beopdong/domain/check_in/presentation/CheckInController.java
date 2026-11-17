@@ -1,6 +1,9 @@
 package com.example.burserker.beopdong.domain.check_in.presentation;
 
 import com.example.burserker.beopdong.domain.check_in.presentation.dto.request.PcFormRequest;
+import com.example.burserker.beopdong.domain.check_in.presentation.dto.request.CreateLogRequest;
+import com.example.burserker.beopdong.domain.check_in.presentation.dto.request.UpdateVisitPurposeRequest;
+import com.example.burserker.beopdong.domain.check_in.presentation.dto.response.UpdateVisitPurposeResponse;
 import com.example.burserker.beopdong.domain.check_in.presentation.dto.request.UserExistsRequest;
 import com.example.burserker.beopdong.domain.check_in.presentation.dto.request.UserSignUpRequest;
 import com.example.burserker.beopdong.domain.check_in.presentation.dto.response.SchoolSearchResponse;
@@ -22,10 +25,22 @@ public class CheckInController {
     private final SearchSchoolService searchSchoolService;
     private final CreateSpringFormService createSpringFormService;
     private final CreatePcFormService createPcFormService;
+    private final CreateLogService createLogService;
+    private final UpdateVisitPurposeService updateVisitPurposeService;
 
     @GetMapping(params = "phone")
     public UserExistsResponse userExists(@ModelAttribute @Valid UserExistsRequest request) {
         return userExistsService.execute(request.phone());
+    }
+
+    @PostMapping
+    public UserSignUpResponse createLog(@RequestBody @Valid CreateLogRequest request) {
+        return createLogService.execute(request);
+    }
+
+    @PatchMapping("/purpose")
+    public UpdateVisitPurposeResponse updateVisitPurpose(@RequestBody @Valid UpdateVisitPurposeRequest request) {
+        return updateVisitPurposeService.execute(request);
     }
 
     @PostMapping("/sign-up")
