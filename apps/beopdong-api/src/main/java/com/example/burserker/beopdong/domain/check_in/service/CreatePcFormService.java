@@ -4,8 +4,8 @@ import com.example.burserker.beopdong.domain.check_in.presentation.dto.request.P
 import com.example.burserker.beopdong.domain.check_in.exception.InvalidFormPurposeException;
 import com.example.burserker.beopdong.domain.check_in.exception.UsageAlreadyActiveException;
 import com.example.burserker.beopdong.domain.log.domain.Log;
-import com.example.burserker.beopdong.domain.log.domain.PurposeUsage;
-import com.example.burserker.beopdong.domain.log.domain.repository.PurposeUsageRepository;
+import com.example.burserker.beopdong.domain.purpose.domain.PurposeUsage;
+import com.example.burserker.beopdong.domain.purpose.domain.repository.PurposeUsageRepository;
 import com.example.burserker.beopdong.domain.log.domain.repository.VisitPurposeRepository;
 import com.example.burserker.beopdong.domain.log.facade.LogFacade;
 import com.example.burserker.beopdong.domain.log.service.CompletePurposeUsageService;

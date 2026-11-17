@@ -1,7 +1,7 @@
 package com.example.burserker.beopdong.domain.organ.service;
 
-import com.example.burserker.beopdong.domain.log.domain.PurposeUsage;
-import com.example.burserker.beopdong.domain.log.domain.repository.PurposeUsageRepository;
+import com.example.burserker.beopdong.domain.purpose.domain.PurposeUsage;
+import com.example.burserker.beopdong.domain.purpose.domain.repository.PurposeUsageRepository;
 import com.example.burserker.beopdong.domain.log.service.CompletePurposeUsageService;
 import com.example.burserker.beopdong.domain.organ.presentation.dto.response.UsageStatusResponse;
 import lombok.RequiredArgsConstructor;
