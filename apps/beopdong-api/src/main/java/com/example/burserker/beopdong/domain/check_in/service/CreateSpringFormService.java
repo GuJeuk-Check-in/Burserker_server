@@ -4,11 +4,13 @@ import com.example.burserker.beopdong.domain.check_in.presentation.dto.request.S
 import com.example.burserker.beopdong.domain.check_in.exception.InvalidFormPurposeException;
 import com.example.burserker.beopdong.domain.check_in.exception.UsageAlreadyActiveException;
 import com.example.burserker.beopdong.domain.log.domain.Log;
+import com.example.burserker.beopdong.domain.log.domain.PurposeLog;
+import com.example.burserker.beopdong.domain.log.domain.enums.PurposeState;
+import com.example.burserker.beopdong.domain.log.domain.repository.PurposeLogRepository;
 import com.example.burserker.beopdong.domain.purpose.domain.PurposeUsage;
 import com.example.burserker.beopdong.domain.purpose.domain.repository.PurposeUsageRepository;
 import com.example.burserker.beopdong.domain.log.domain.repository.VisitPurposeRepository;
 import com.example.burserker.beopdong.domain.log.facade.LogFacade;
-import com.example.burserker.beopdong.domain.log.service.CompletePurposeUsageService;
 import com.example.burserker.beopdong.domain.purpose.domain.Purpose;
 import com.example.burserker.beopdong.domain.purpose.domain.repository.PurposeRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,9 +24,9 @@ import java.time.ZoneId;
 @RequiredArgsConstructor
 public class CreateSpringFormService {
     private final PurposeUsageRepository purposeUsageRepository;
+    private final PurposeLogRepository purposeLogRepository;
     private final VisitPurposeRepository visitPurposeRepository;
     private final LogFacade logFacade;
-    private final CompletePurposeUsageService completePurposeUsageService;
     private final PurposeRepository purposeRepository;
 
     /**
@@ -33,7 +35,6 @@ public class CreateSpringFormService {
     @Transactional
     public void execute(SpringFormRequest request) {
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
-        completePurposeUsageService.execute(now);
 
         Log log = logFacade.getLogById(request.logId());
         Purpose purpose = purposeRepository.findById(request.purpose())
@@ -57,6 +58,13 @@ public class CreateSpringFormService {
         } else {
             usage.join(log, now);
         }
-        purposeUsageRepository.save(usage);
+        usage = purposeUsageRepository.save(usage);
+        PurposeLog history = purposeLogRepository.findByPurposeUsageIdAndPurposeState(usage.getId(), PurposeState.PENDING)
+                .orElse(null);
+        if (history == null) {
+            purposeLogRepository.save(PurposeLog.create(usage));
+        } else {
+            history.updateUsage(usage);
+        }
     }
 }

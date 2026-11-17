@@ -48,22 +48,34 @@ public class PurposeLog extends BaseIdEntity {
 
     private LocalDateTime endAt;
 
-    /**
-     * 종료된 회차의 이름·인원·시간을 팀당 한 건의 완료 신청서로 복사한다. 원본 참가자 관계는 유지한다.
-     */
-    public static PurposeLog complete(PurposeUsage usage) {
-        return PurposeLog.builder()
-                .log(usage.getMembers().get(0).getLog())
-                .purpose(usage.getPurpose())
+    public static PurposeLog create(PurposeUsage usage) {
+        PurposeLog history = PurposeLog.builder()
                 .purposeUsage(usage)
-                .purposeState(PurposeState.SUCCESS)
-                .name(usage.getName())
-                .seat(usage.getSeat())
-                .usePurpose(usage.getUsePurpose())
-                .count(usage.getSeat() == null ? usage.getCount() : null)
-                .startAt(usage.getStartAt())
-                .endAt(usage.getEndAt())
+                .purposeState(PurposeState.PENDING)
                 .build();
+        history.updateUsage(usage);
+        return history;
+    }
+
+    public void updateUsage(PurposeUsage usage) {
+        this.log = usage.getMembers().get(0).getLog();
+        this.purpose = usage.getPurpose();
+        this.name = usage.getName();
+        this.seat = usage.getSeat();
+        this.usePurpose = usage.getUsePurpose();
+        this.count = usage.getSeat() == null ? usage.getCount() : null;
+        this.startAt = usage.getStartAt();
+        this.endAt = usage.getEndAt();
+    }
+
+    public boolean isCompleted(LocalDateTime now) {
+        return purposeState == PurposeState.SUCCESS
+                || (purposeState == PurposeState.PENDING && purposeUsage != null && !now.isBefore(purposeUsage.getEndAt()));
+    }
+
+    public void endEarly(LocalDateTime now) {
+        this.purposeState = PurposeState.SUCCESS;
+        this.endAt = now;
     }
 
     /**
@@ -71,6 +83,7 @@ public class PurposeLog extends BaseIdEntity {
      */
     public void updateCompletedUsage(Purpose purpose, String name, String usePurpose, Integer seat,
                                      Integer count, LocalDateTime startAt, LocalDateTime endAt) {
+        this.purposeState = PurposeState.SUCCESS;
         this.purpose = purpose;
         this.name = name;
         this.usePurpose = usePurpose;

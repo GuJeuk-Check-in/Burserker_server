@@ -1,6 +1,7 @@
 package com.example.burserker.beopdong.domain.purpose.domain;
 
 import com.example.burserker.beopdong.domain.log.domain.Log;
+import com.example.burserker.beopdong.domain.organ.exception.InvalidUsageEndException;
 import com.example.burserker.beopdong.domain.check_in.exception.InvalidFormPurposeException;
 import com.example.burserker.beopdong.domain.check_in.exception.UsageAlreadyActiveException;
 import com.example.burserker.beopdong.global.entity.BaseIdEntity;
@@ -111,10 +112,11 @@ public class PurposeUsage extends BaseIdEntity {
         return members.stream().map(member -> member.getLog().getName()).collect(Collectors.joining(", "));
     }
 
-    /**
-     * 완료 이력이 생성된 회차임을 표시한다. 참가자 연결은 이력 확인을 위해 보존한다.
-     */
-    public void complete() {
-        this.completed = true;
+    public void endEarly(LocalDateTime now) {
+        if (completed || !now.isBefore(endAt)) {
+            throw InvalidUsageEndException.EXCEPTION;
+        }
+        endAt = now;
+        completed = true;
     }
 }

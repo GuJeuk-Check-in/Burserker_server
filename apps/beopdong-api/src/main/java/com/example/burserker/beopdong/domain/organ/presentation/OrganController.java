@@ -15,6 +15,8 @@ import com.example.burserker.beopdong.global.error.ErrorResponse;
 import com.example.burserker.beopdong.global.error.exception.ErrorCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import com.example.burserker.beopdong.domain.organ.service.EndPurposeUsageService;
+import org.springframework.http.HttpStatus;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -28,6 +30,7 @@ public class OrganController {
     private final QueryUsageStatusService queryUsageStatusService;
     private final QueryCompletedUsageService queryCompletedUsageService;
     private final UpdateCompletedUsageService updateCompletedUsageService;
+    private final EndPurposeUsageService endPurposeUsageService;
 
     @PostMapping
     public TokenResponse login(@RequestBody @Valid LoginOrganRequest request) {
@@ -58,6 +61,12 @@ public class OrganController {
     @PutMapping("/purpose/{id}")
     public void updateCompletedUsage(@PathVariable Long id, @RequestBody @Valid UpdateCompletedUsageRequest request) {
         updateCompletedUsageService.execute(id, request);
+    }
+
+    @PatchMapping("/purpose/{usageId}/end")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void endPurposeUsage(@PathVariable Long usageId) {
+        endPurposeUsageService.execute(usageId);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)

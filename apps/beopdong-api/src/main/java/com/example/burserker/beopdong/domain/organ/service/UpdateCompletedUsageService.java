@@ -2,7 +2,6 @@ package com.example.burserker.beopdong.domain.organ.service;
 
 import com.example.burserker.beopdong.domain.log.domain.PurposeLog;
 import com.example.burserker.beopdong.domain.log.exception.PurposeLogNotFoundException;
-import com.example.burserker.beopdong.domain.log.domain.enums.PurposeState;
 import com.example.burserker.beopdong.domain.log.domain.repository.PurposeLogRepository;
 import com.example.burserker.beopdong.domain.organ.exception.InvalidCompletedUsageException;
 import com.example.burserker.beopdong.domain.organ.presentation.dto.request.UpdateCompletedUsageRequest;
@@ -33,7 +32,7 @@ public class UpdateCompletedUsageService {
 
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
 
-        if (usage.getPurposeState() != PurposeState.SUCCESS) {
+        if (!usage.isCompleted(now)) {
             throw InvalidCompletedUsageException.EXCEPTION;
         }
 

@@ -4,11 +4,12 @@ import com.example.burserker.beopdong.domain.check_in.presentation.dto.request.P
 import com.example.burserker.beopdong.domain.check_in.exception.InvalidFormPurposeException;
 import com.example.burserker.beopdong.domain.check_in.exception.UsageAlreadyActiveException;
 import com.example.burserker.beopdong.domain.log.domain.Log;
+import com.example.burserker.beopdong.domain.log.domain.PurposeLog;
+import com.example.burserker.beopdong.domain.log.domain.repository.PurposeLogRepository;
 import com.example.burserker.beopdong.domain.purpose.domain.PurposeUsage;
 import com.example.burserker.beopdong.domain.purpose.domain.repository.PurposeUsageRepository;
 import com.example.burserker.beopdong.domain.log.domain.repository.VisitPurposeRepository;
 import com.example.burserker.beopdong.domain.log.facade.LogFacade;
-import com.example.burserker.beopdong.domain.log.service.CompletePurposeUsageService;
 import com.example.burserker.beopdong.domain.purpose.domain.Purpose;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,9 +22,9 @@ import java.time.ZoneId;
 @RequiredArgsConstructor
 public class CreatePcFormService {
     private final PurposeUsageRepository purposeUsageRepository;
+    private final PurposeLogRepository purposeLogRepository;
     private final VisitPurposeRepository visitPurposeRepository;
     private final LogFacade logFacade;
-    private final CompletePurposeUsageService completePurposeUsageService;
 
     /**
      * 방문의 선택 목록, 회원 이용 상태와 좌석을 검사하고 컴퓨터 이용을 시작한다.
@@ -31,7 +32,6 @@ public class CreatePcFormService {
     @Transactional
     public void execute(PcFormRequest request) {
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
-        completePurposeUsageService.execute(now);
 
         Log log = logFacade.getLogById(request.logId());
         Purpose purpose = visitPurposeRepository.findByLogIdAndPurposePurposeName(log.getId(), "인터넷")
@@ -44,6 +44,7 @@ public class CreatePcFormService {
         if (purposeUsageRepository.existsActiveSeat(purpose.getId(), request.seat(), now)) {
             throw UsageAlreadyActiveException.EXCEPTION;
         }
-        purposeUsageRepository.save(PurposeUsage.createPc(purpose, log, request.seat(), request.usePurpose(), now));
+        PurposeUsage usage = purposeUsageRepository.save(PurposeUsage.createPc(purpose, log, request.seat(), request.usePurpose(), now));
+        purposeLogRepository.save(PurposeLog.create(usage));
     }
 }

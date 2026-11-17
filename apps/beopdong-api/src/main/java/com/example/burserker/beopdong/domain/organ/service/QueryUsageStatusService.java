@@ -2,7 +2,6 @@ package com.example.burserker.beopdong.domain.organ.service;
 
 import com.example.burserker.beopdong.domain.purpose.domain.PurposeUsage;
 import com.example.burserker.beopdong.domain.purpose.domain.repository.PurposeUsageRepository;
-import com.example.burserker.beopdong.domain.log.service.CompletePurposeUsageService;
 import com.example.burserker.beopdong.domain.organ.presentation.dto.response.UsageStatusResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,16 +19,13 @@ import java.util.List;
 public class QueryUsageStatusService {
 
     private final PurposeUsageRepository purposeUsageRepository;
-    private final CompletePurposeUsageService completePurposeUsageService;
 
     /**
-     * 만료 회차를 정리한 뒤 사용 중인 컴퓨터 좌석과 노래방·탁구의 팀 현황을 반환한다.
+     * 사용 중인 컴퓨터 좌석과 노래방·탁구의 이용 현황을 반환한다.
      */
-    @Transactional
+    @Transactional(readOnly = true)
     public UsageStatusResponse execute() {
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
-
-        completePurposeUsageService.execute(now);
 
         List<PurposeUsage> usages = purposeUsageRepository
                 .findActiveUsages(now);
