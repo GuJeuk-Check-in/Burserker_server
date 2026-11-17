@@ -2,13 +2,12 @@ package com.example.burserker.beopdong.domain.log.service;
 
 import com.example.burserker.beopdong.domain.log.domain.Log;
 import com.example.burserker.beopdong.domain.log.domain.VisitPurpose;
+import com.example.burserker.beopdong.domain.log.exception.LogDetailNotFoundException;
 import com.example.burserker.beopdong.domain.log.domain.repository.LogRepository;
 import com.example.burserker.beopdong.domain.log.domain.repository.VisitPurposeRepository;
 import com.example.burserker.beopdong.domain.log.presentation.dto.response.LogDetailResponse;
 import com.example.burserker.beopdong.domain.purpose.domain.PurposeUsage;
 import com.example.burserker.beopdong.domain.purpose.domain.repository.PurposeUsageRepository;
-import com.example.burserker.beopdong.global.error.exception.BeopdongException;
-import com.example.burserker.beopdong.global.error.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +27,7 @@ public class QueryLogDetailService {
     @Transactional(readOnly = true)
     public LogDetailResponse execute(Long logId) {
         Log log = logRepository.findById(logId)
-                .orElseThrow(() -> new BeopdongException(ErrorCode.LOG_DETAIL_NOT_FOUND, "존재하지 않는 방명록 입니다."));
+                .orElseThrow(() -> LogDetailNotFoundException.EXCEPTION);
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
         List<VisitPurpose> selected = visitPurposeRepository.findAllByLogId(logId);
         List<PurposeUsage> usages = purposeUsageRepository.findUsagesByLogId(logId);
