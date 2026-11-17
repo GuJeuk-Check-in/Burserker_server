@@ -4,8 +4,6 @@ import com.example.burserker.beopdong.domain.check_in.presentation.dto.request.P
 import com.example.burserker.beopdong.domain.check_in.exception.InvalidFormPurposeException;
 import com.example.burserker.beopdong.domain.check_in.exception.UsageAlreadyActiveException;
 import com.example.burserker.beopdong.domain.log.domain.Log;
-import com.example.burserker.beopdong.domain.log.domain.PurposeLog;
-import com.example.burserker.beopdong.domain.log.domain.repository.PurposeLogRepository;
 import com.example.burserker.beopdong.domain.purpose.domain.PurposeUsage;
 import com.example.burserker.beopdong.domain.purpose.domain.repository.PurposeUsageRepository;
 import com.example.burserker.beopdong.domain.log.domain.repository.VisitPurposeRepository;
@@ -22,7 +20,6 @@ import java.time.ZoneId;
 @RequiredArgsConstructor
 public class CreatePcFormService {
     private final PurposeUsageRepository purposeUsageRepository;
-    private final PurposeLogRepository purposeLogRepository;
     private final VisitPurposeRepository visitPurposeRepository;
     private final LogFacade logFacade;
 
@@ -44,7 +41,6 @@ public class CreatePcFormService {
         if (purposeUsageRepository.existsActiveSeat(purpose.getId(), request.seat(), now)) {
             throw UsageAlreadyActiveException.EXCEPTION;
         }
-        PurposeUsage usage = purposeUsageRepository.save(PurposeUsage.createPc(purpose, log, request.seat(), request.usePurpose(), now));
-        purposeLogRepository.save(PurposeLog.create(usage));
+        purposeUsageRepository.save(PurposeUsage.createPc(purpose, log, request.seat(), request.usePurpose(), now));
     }
 }

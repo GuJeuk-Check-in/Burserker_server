@@ -12,9 +12,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-
 @Service
 @RequiredArgsConstructor
 public class QueryCompletedUsageService {
@@ -33,10 +30,8 @@ public class QueryCompletedUsageService {
             throw InvalidCompletedUsageException.EXCEPTION;
         }
 
-        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
-
         Page<CompletedUsageResponse> result = purposeLogRepository
-                .findCompletedUsages(PurposeState.SUCCESS, PurposeState.PENDING, purpose, now, PageRequest.of(page, size))
+                .findCompletedUsages(PurposeState.SUCCESS, purpose, PageRequest.of(page, size))
                 .map(CompletedUsageResponse::from);
 
         return CompletedUsagePageResponse.from(result);

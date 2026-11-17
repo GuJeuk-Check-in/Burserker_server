@@ -48,34 +48,19 @@ public class PurposeLog extends BaseIdEntity {
 
     private LocalDateTime endAt;
 
-    public static PurposeLog create(PurposeUsage usage) {
-        PurposeLog history = PurposeLog.builder()
+    public static PurposeLog complete(PurposeUsage usage) {
+        return PurposeLog.builder()
+                .log(usage.getLogs().get(0))
+                .purpose(usage.getPurpose())
                 .purposeUsage(usage)
-                .purposeState(PurposeState.PENDING)
+                .purposeState(PurposeState.SUCCESS)
+                .name(usage.getName())
+                .seat(usage.getSeat())
+                .usePurpose(usage.getUsePurpose())
+                .count(usage.getSeat() == null ? usage.getCount() : null)
+                .startAt(usage.getStartAt())
+                .endAt(usage.getEndAt())
                 .build();
-        history.updateUsage(usage);
-        return history;
-    }
-
-    public void updateUsage(PurposeUsage usage) {
-        this.log = usage.getLogs().get(0);
-        this.purpose = usage.getPurpose();
-        this.name = usage.getName();
-        this.seat = usage.getSeat();
-        this.usePurpose = usage.getUsePurpose();
-        this.count = usage.getSeat() == null ? usage.getCount() : null;
-        this.startAt = usage.getStartAt();
-        this.endAt = usage.getEndAt();
-    }
-
-    public boolean isCompleted(LocalDateTime now) {
-        return purposeState == PurposeState.SUCCESS
-                || (purposeState == PurposeState.PENDING && purposeUsage != null && !now.isBefore(purposeUsage.getEndAt()));
-    }
-
-    public void endEarly(LocalDateTime now) {
-        this.purposeState = PurposeState.SUCCESS;
-        this.endAt = now;
     }
 
     /**

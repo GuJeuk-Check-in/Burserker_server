@@ -4,9 +4,6 @@ import com.example.burserker.beopdong.domain.check_in.presentation.dto.request.S
 import com.example.burserker.beopdong.domain.check_in.exception.InvalidFormPurposeException;
 import com.example.burserker.beopdong.domain.check_in.exception.UsageAlreadyActiveException;
 import com.example.burserker.beopdong.domain.log.domain.Log;
-import com.example.burserker.beopdong.domain.log.domain.PurposeLog;
-import com.example.burserker.beopdong.domain.log.domain.enums.PurposeState;
-import com.example.burserker.beopdong.domain.log.domain.repository.PurposeLogRepository;
 import com.example.burserker.beopdong.domain.purpose.domain.PurposeUsage;
 import com.example.burserker.beopdong.domain.purpose.domain.repository.PurposeUsageRepository;
 import com.example.burserker.beopdong.domain.log.domain.repository.VisitPurposeRepository;
@@ -24,7 +21,6 @@ import java.time.ZoneId;
 @RequiredArgsConstructor
 public class CreateSpringFormService {
     private final PurposeUsageRepository purposeUsageRepository;
-    private final PurposeLogRepository purposeLogRepository;
     private final VisitPurposeRepository visitPurposeRepository;
     private final LogFacade logFacade;
     private final PurposeRepository purposeRepository;
@@ -58,13 +54,6 @@ public class CreateSpringFormService {
         } else {
             usage.join(log, now);
         }
-        usage = purposeUsageRepository.save(usage);
-        PurposeLog history = purposeLogRepository.findByPurposeUsageIdAndPurposeState(usage.getId(), PurposeState.PENDING)
-                .orElse(null);
-        if (history == null) {
-            purposeLogRepository.save(PurposeLog.create(usage));
-        } else {
-            history.updateUsage(usage);
-        }
+        purposeUsageRepository.save(usage);
     }
 }

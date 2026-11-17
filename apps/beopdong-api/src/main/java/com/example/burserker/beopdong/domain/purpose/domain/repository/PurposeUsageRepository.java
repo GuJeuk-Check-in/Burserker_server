@@ -57,4 +57,12 @@ public interface PurposeUsageRepository extends JpaRepository<PurposeUsage, Long
               AND usage.endAt > :now
             """)
     List<PurposeUsage> findActiveUsages(@Param("now") LocalDateTime now);
+
+    @Query("""
+            SELECT usage.id
+            FROM PurposeUsage usage
+            WHERE usage.completed = false AND usage.endAt <= :now
+            ORDER BY usage.id
+            """)
+    List<Long> findExpiredUsageIds(@Param("now") LocalDateTime now);
 }

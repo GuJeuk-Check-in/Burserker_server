@@ -1,7 +1,6 @@
 package com.example.burserker.beopdong.domain.purpose.domain;
 
 import com.example.burserker.beopdong.domain.log.domain.Log;
-import com.example.burserker.beopdong.domain.organ.exception.InvalidUsageEndException;
 import com.example.burserker.beopdong.domain.check_in.exception.InvalidFormPurposeException;
 import com.example.burserker.beopdong.domain.check_in.exception.UsageAlreadyActiveException;
 import com.example.burserker.beopdong.global.entity.BaseIdEntity;
@@ -116,11 +115,8 @@ public class PurposeUsage extends BaseIdEntity {
         return logs.stream().map(Log::getName).collect(Collectors.joining(", "));
     }
 
-    public void endEarly(LocalDateTime now) {
-        if (completed || !now.isBefore(endAt)) {
-            throw InvalidUsageEndException.EXCEPTION;
-        }
-        endAt = now;
-        completed = true;
+    public void complete(LocalDateTime endAt) {
+        this.endAt = endAt;
+        this.completed = true;
     }
 }
