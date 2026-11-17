@@ -65,4 +65,13 @@ public interface PurposeUsageRepository extends JpaRepository<PurposeUsage, Long
             ORDER BY usage.id
             """)
     List<Long> findExpiredUsageIds(@Param("now") LocalDateTime now);
+
+    @EntityGraph(attributePaths = "purpose")
+    @Query("""
+            SELECT usage
+            FROM PurposeUsage usage JOIN usage.logs visitor
+            WHERE visitor.id = :logId
+            ORDER BY usage.id DESC
+            """)
+    List<PurposeUsage> findUsagesByLogId(@Param("logId") Long logId);
 }

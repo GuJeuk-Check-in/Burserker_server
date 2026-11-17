@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 
 @Entity
@@ -37,6 +38,11 @@ public class Log extends BaseIdEntity {
 
     @Column(nullable = false)
     private LocalDateTime visitAt;
+
+    public long getOrganRemainTime(LocalDateTime now) {
+        long elapsedMinutes = Duration.between(visitAt, now).toMinutes();
+        return Math.max(0, 180 - elapsedMinutes);
+    }
 
     public static Log create(User user, LocalDateTime visitAt) {
         int age = visitAt.getYear() - user.getBirthYMD().getYear() + 1;
