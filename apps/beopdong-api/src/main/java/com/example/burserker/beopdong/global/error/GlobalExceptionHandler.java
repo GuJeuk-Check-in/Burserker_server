@@ -49,7 +49,7 @@ public class GlobalExceptionHandler {
                 message,
                 400,
                 LocalDateTime.now(),
-                message
+                "빈칸을 채워주세요!".equals(message) ? "빈칸을 채워주세요." : message
         );
 
         return ResponseEntity.badRequest().body(response);

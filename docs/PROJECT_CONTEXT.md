@@ -1,9 +1,21 @@
 # 구즉·법동 프로젝트 현황
 
-> 최종 갱신: 2026-11-11. 영역별 확인 시점과 저장소 설정·실제 서버 상태를 구분합니다.
+> 최종 갱신: 2026-11-18. 영역별 확인 시점과 저장소 설정·실제 서버 상태를 구분합니다.
 > 과거 변경 이력은 Git에서 확인하고, 이 문서에는 현재 구조와 작업에 필요한 내용만 유지합니다.
 
 ## 1. 먼저 확인할 사항
+
+- 2026-11-18 법동은 신청 시 PurposeUsage와 참가 방문 목록만 저장하고, 정상·팀 조기 종료 시 SUCCESS PurposeLog 한 건을 생성하도록 변경했다. PENDING 신청서 사전 저장과 조회 시 완료 추론은 제거했다.
+- 기존 EndPurposeUsageService의 completeExpiredUsages를 fixedDelay 1000ms로 실행한다. 정상 이력에는 원래 예정 종료 시각을, 조기 종료에는 요청 처리 시각을 기록한다. 자동 처리 전까지 완료 이력 기반 집계에는 짧은 지연이 있을 수 있다.
+- 별도 Member Entity는 삭제하고 PurposeUsage.logs가 기존 연결 테이블을 사용한다. 단일 기기 운영 범위에 맞춰 사용자 요청으로 추가했던 합류·종료 조회의 DB 잠금은 제거했다. 별도 동시성 대응은 구현 범위에서 제외했다. 관리자의 완료 이력 수정은 원본에 반영하지 않는다.
+- V4__complete_usage_on_end.sql을 작성했다. joined_at 필수 조건을 해제하고 기존 완료 이력·지난 PENDING을 완료로 맞춘다. 진행 중 PENDING 초안은 삭제하지 않고 이용 연결만 해제해, 실제 종료 시 새 SUCCESS 이력을 생성할 수 있도록 한다. V1/V2/V3는 변경하지 않았다. 사용자 요청으로 V4 테스트·DB 실행은 하지 않았다. 실제 DB 적용 전 백업·데이터 확인과 검증이 필요하다.
+
+- 2026-11-11 법동 Flyway V1/V2를 추가하고 사용자 승인으로 로컬 localhost:3306/BeopDong에 적용했습니다. 스테이징·운영 DB에는 적용하지 않았습니다.
+- 로컬 적용: 회원 15명·방명록 15건·purpose_log 29건·옛 log_purpose 4건을 보존했습니다. visit_purpose 48건, purpose_usage와 참가자 각 9건을 생성했고, Hibernate 스키마 검증이 통과했습니다. 백업은 저장소 밖 C:/env/backups/beopdong에 있습니다.
+- 법동은 ddl-auto: none을 유지하고 법동 전용 db/migration을 사용합니다. 기존 DB 최초 전환은 구조 확인·백업 후 version 1 baseline이 필요합니다. 기본 자동 baseline과 clean은 비활성화합니다.
+- 데이터 이전과 적용·복구 절차는 [법동 DB 마이그레이션](../ops/beopdong/MIGRATION.md)을 확인합니다. 개인 환경변수나 DB dump를 출력·커밋하지 않습니다.
+- 방문 인증은 협의 전까지 보류 상태입니다. 코드 변경·빌드 성공을 실제 서버 적용 완료로 해석하지 않습니다.
+- 임시 MySQL 8.0에서 V1/V2·기존 데이터 이전·위험 데이터 거부·Hibernate 스키마 검증 및 실제 신청 동시성/재이용을 검증했습니다. 임시 검증 후 로컬 BeopDong 적용도 완료했습니다. 기존 연결 테스트는 Flyway를 비활성화합니다.
 
 - 구즉 운영 DB의 Notion 자동 백업(#166)을 EC2에 설치·활성화했습니다. 실제 파일 첨부·격리 복원·재다운로드 해시 검증을 완료했으며 일정과 한계는 9절을 확인합니다.
 - 2026-11-10 EC2의 실제 Caddyfile과 실행 중인 설정에 법동 도메인이 없는 것을 확인했습니다. 법동 외부 요청은 525, 내부 `/purpose` 요청은 `beopdong_stag.purpose` 테이블 누락으로 500이었습니다.
@@ -26,7 +38,7 @@
 - 공통: Java 17, Spring Boot 3.5.6, Gradle, MySQL 8, Redis 7.2, Spring Security/JWT, JPA.
 - 구즉 추가 구성: QueryDSL, Flyway, Apache POI, Datadog Java tracer.
 - Java 패키지: `com.example.burserker.gujeuk`, `com.example.burserker.beopdong`.
-- 법동은 구즉 클래스·Flyway SQL을 공유하지 않습니다. #185에서 `ddl-auto: update`로 변경해 앱 기동 시 스키마를 생성·변경하도록 설정했습니다.
+- 법동은 구즉 클래스·Flyway SQL을 공유하지 않습니다. #185의 자동 DDL 설정은 이번 #179에서 법동 전용 Flyway V1/V2와 `ddl-auto: none`으로 대체합니다. 실제 DB 적용 범위는 1절과 법동 마이그레이션 안내를 확인합니다.
 
 ```bash
 ./gradlew :apps:gujeuk-api:bootJar

@@ -46,6 +46,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/organ").permitAll()
                         .requestMatchers(HttpMethod.PATCH, "/organ").permitAll()
                         .requestMatchers(HttpMethod.GET, "/purpose").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/log", "/log/{logId}").permitAll()
                         .requestMatchers(
                                 "/check-in",
                                 "/check-in/**"

@@ -17,7 +17,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 // 명시적으로 요청한 로컬 검증에서만 실행합니다. 운영 데이터에는 접근하지 않습니다.
 @EnabledIfEnvironmentVariable(named = "BEOPDONG_LOCAL_REDIS_TEST", matches = "true")
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
+// 연결 확인만으로 기존 로컬 DB의 마이그레이션이 실행되지 않도록 막습니다.
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE, properties = "spring.flyway.enabled=false")
 class LocalRedisConnectionTest {
 
     @Autowired
