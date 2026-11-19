@@ -8,6 +8,7 @@ import com.example.burserker.beopdong.domain.purpose.service.MovePurposeService;
 import com.example.burserker.beopdong.domain.purpose.service.UpdatePurposeService;
 import com.example.burserker.beopdong.global.security.auth.CustomUserDetails;
 import com.example.burserker.beopdong.domain.purpose.presentation.dto.response.PurposeListResponse;
+import com.example.burserker.beopdong.domain.purpose.presentation.dto.response.PurposeResponse;
 import com.example.burserker.beopdong.domain.purpose.service.QueryPurposeListService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,11 +25,11 @@ public class PurposeController {
     private final MovePurposeService movePurposeService;
 
     @PatchMapping
-    public void createPurpose(
+    public PurposeResponse createPurpose(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody @Valid PurposeRequest request
     ) {
-        createPurposeService.execute(userDetails.organ().getId(), request);
+        return createPurposeService.execute(userDetails.organ().getId(), request);
     }
 
     @PatchMapping("/{purposeId}")

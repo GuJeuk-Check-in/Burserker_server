@@ -6,12 +6,14 @@ import lombok.Builder;
 @Builder
 public record PurposeResponse(
         Long id,
-        String purposeName
+        String purposeName,
+        boolean locked
 ) {
     public static PurposeResponse from(Purpose purpose) {
         return PurposeResponse.builder()
                 .id(purpose.getId())
                 .purposeName(purpose.getPurposeName())
+                .locked(purpose.isLocked())
                 .build();
     }
 }

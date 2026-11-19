@@ -5,6 +5,7 @@ import com.example.burserker.beopdong.domain.organ.facade.OrganFacade;
 import com.example.burserker.beopdong.domain.purpose.domain.Purpose;
 import com.example.burserker.beopdong.domain.purpose.domain.repository.PurposeRepository;
 import com.example.burserker.beopdong.domain.purpose.presentation.dto.request.PurposeRequest;
+import com.example.burserker.beopdong.domain.purpose.presentation.dto.response.PurposeResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,7 +18,7 @@ public class CreatePurposeService {
     private final OrganFacade organFacade;
 
     @Transactional
-    public void execute(Long organId, PurposeRequest request) {
+    public PurposeResponse execute(Long organId, PurposeRequest request) {
         Organ organ = organFacade.getOrganWithLock(organId);
 
         int purposeIndex =
@@ -25,12 +26,13 @@ public class CreatePurposeService {
                                 .map(purpose -> purpose.getPurposeIndex() + 1)
                                         .orElse(1);
 
-        purposeRepository.save(
+        Purpose purpose = purposeRepository.save(
                 Purpose.builder()
                         .purposeName(request.purposeName())
                         .purposeIndex(purposeIndex)
                         .organ(organ)
                         .build()
         );
+        return PurposeResponse.from(purpose);
     }
 }
