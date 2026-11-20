@@ -7,6 +7,6 @@ public class OrganLogPurposeNotFoundException extends BeopdongException {
     public static final BeopdongException EXCEPTION = new OrganLogPurposeNotFoundException();
 
     private OrganLogPurposeNotFoundException() {
-        super(ErrorCode.ORGAN_LOG_PURPOSE_NOT_FOUND, "존재하지 않는 이용대장입니다.");
+        super(ErrorCode.ORGAN_LOG_PURPOSE_NOT_FOUND);
     }
 }
