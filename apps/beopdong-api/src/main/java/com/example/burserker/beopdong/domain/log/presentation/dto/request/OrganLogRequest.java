@@ -11,9 +11,7 @@ import java.util.List;
 
 public record OrganLogRequest(
         String name,
-        @NotNull(message = "연령은 필수 입력값입니다.")
         Integer age,
-        @NotNull(message = "성별은 필수 입력값입니다.")
         Gender gender,
         @Pattern(regexp = "^(?:\\s*|010\\d{8})$", message = "연락처 형식이 올바르지 않음")
         String phone,

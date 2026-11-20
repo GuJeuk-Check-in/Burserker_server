@@ -26,11 +26,9 @@ public class Log extends BaseIdEntity {
     private String name;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private Gender gender;
 
-    @Column(nullable = false)
-    private int age;
+    private Integer age;
 
     private String phone;
 
@@ -46,6 +44,10 @@ public class Log extends BaseIdEntity {
     @Column(nullable = false)
     private LocalDateTime visitAt;
 
+    public static Log createAdult(LocalDateTime visitAt) {
+        return Log.builder().visitAt(visitAt).build();
+    }
+
     public static Log createForOrgan(String name, int age, Gender gender, String phone,
                                      LocalDateTime visitAt, String visitPurpose, String note) {
         Log log = new Log();
@@ -53,14 +55,15 @@ public class Log extends BaseIdEntity {
         return log;
     }
 
-    public void update(String name, int age, Gender gender, String phone,
+    public void update(String name, Integer age, Gender gender, String phone,
                        LocalDateTime visitAt, String visitPurpose, String note) {
-        this.name = blankToNull(name);
+        boolean adult = age == null || age >= 20;
+        this.name = adult ? null : blankToNull(name);
         this.age = age;
         this.gender = gender;
-        this.phone = age < 20 ? phone : null;
+        this.phone = adult ? null : phone;
         this.visitAt = visitAt;
-        this.visitPurpose = age >= 20 ? blankToNull(visitPurpose) : null;
+        this.visitPurpose = adult ? blankToNull(visitPurpose) : null;
         this.note = blankToNull(note);
     }
 

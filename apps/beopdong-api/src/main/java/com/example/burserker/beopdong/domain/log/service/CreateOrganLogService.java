@@ -9,8 +9,7 @@ import com.example.burserker.beopdong.domain.log.presentation.dto.request.OrganL
 import com.example.burserker.beopdong.domain.log.presentation.dto.response.CreateOrganLogResponse;
 import com.example.burserker.beopdong.domain.purpose.domain.Purpose;
 import com.example.burserker.beopdong.domain.purpose.domain.repository.PurposeRepository;
-import com.example.burserker.beopdong.global.error.exception.BeopdongException;
-import com.example.burserker.beopdong.global.error.exception.ErrorCode;
+import com.example.burserker.beopdong.domain.log.exception.OrganLogRequiredException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,8 +25,12 @@ public class CreateOrganLogService {
 
     @Transactional
     public CreateOrganLogResponse execute(OrganLogRequest request) {
-        if (request.age() < 20 && (request.phone() == null || request.phone().isBlank())) {
-            throw new BeopdongException(ErrorCode.ORGAN_LOG_REQUIRED, "연락처는 필수 입력값입니다.");
+        if (request.age() == null || request.gender() == null) {
+            throw OrganLogRequiredException.EXCEPTION;
+        }
+        if (request.age() < 20 && (request.name() == null || request.name().isBlank()
+                || request.phone() == null || request.phone().isBlank())) {
+            throw OrganLogRequiredException.EXCEPTION;
         }
         List<Long> ids = request.purpose().stream().distinct().toList();
         List<Purpose> purposes = purposeRepository.findAllById(ids);
