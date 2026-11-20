@@ -31,13 +31,13 @@ public class CreatePcFormService {
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
 
         Log log = logFacade.getLogById(request.logId());
-        if (log.getUser() == null) {
-            throw InvalidFormPurposeException.EXCEPTION;
-        }
         Purpose purpose = visitPurposeRepository.findByLogIdAndPurposePurposeName(log.getId(), "인터넷")
                 .orElseThrow(() -> InvalidFormPurposeException.EXCEPTION).getPurpose();
 
-        if (purposeUsageRepository.existsActiveUser(log.getUser().getId(), now)) {
+        boolean active = log.getUser() == null
+                ? purposeUsageRepository.existsActiveLog(log.getId(), now)
+                : purposeUsageRepository.existsActiveUser(log.getUser().getId(), now);
+        if (active) {
             throw UsageAlreadyActiveException.EXCEPTION;
         }
 

@@ -33,9 +33,6 @@ public class CreateSpringFormService {
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
 
         Log log = logFacade.getLogById(request.logId());
-        if (log.getUser() == null) {
-            throw InvalidFormPurposeException.EXCEPTION;
-        }
         Purpose purpose = purposeRepository.findById(request.purpose())
                 .orElseThrow(() -> InvalidFormPurposeException.EXCEPTION);
 
@@ -44,7 +41,10 @@ public class CreateSpringFormService {
             throw InvalidFormPurposeException.EXCEPTION;
         }
 
-        if (purposeUsageRepository.existsActiveUser(log.getUser().getId(), now)) {
+        boolean active = log.getUser() == null
+                ? purposeUsageRepository.existsActiveLog(log.getId(), now)
+                : purposeUsageRepository.existsActiveUser(log.getUser().getId(), now);
+        if (active) {
             throw UsageAlreadyActiveException.EXCEPTION;
         }
 

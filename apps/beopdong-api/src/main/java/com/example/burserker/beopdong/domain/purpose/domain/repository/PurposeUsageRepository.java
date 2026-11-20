@@ -23,6 +23,15 @@ public interface PurposeUsageRepository extends JpaRepository<PurposeUsage, Long
 
     @Query("""
             SELECT COUNT(usage) > 0
+            FROM PurposeUsage usage JOIN usage.logs visitor
+            WHERE visitor.id = :logId
+              AND usage.completed = false
+              AND usage.endAt > :now
+            """)
+    boolean existsActiveLog(@Param("logId") Long logId, @Param("now") LocalDateTime now);
+
+    @Query("""
+            SELECT COUNT(usage) > 0
             FROM PurposeUsage usage
             WHERE usage.purpose.id = :purposeId
               AND usage.seat = :seat
