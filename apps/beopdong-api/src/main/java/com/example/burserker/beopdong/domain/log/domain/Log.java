@@ -32,10 +32,8 @@ public class Log extends BaseIdEntity {
 
     private String phone;
 
-    @Column(columnDefinition = "TEXT")
     private String visitPurpose;
 
-    @Column(columnDefinition = "TEXT")
     private String note;
 
     @Column(nullable = false)
