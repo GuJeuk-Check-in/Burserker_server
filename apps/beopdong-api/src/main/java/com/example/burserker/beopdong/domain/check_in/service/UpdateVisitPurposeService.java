@@ -11,10 +11,14 @@ import com.example.burserker.beopdong.domain.log.exception.LogDetailNotFoundExce
 import com.example.burserker.beopdong.domain.log.service.QueryLogDetailService;
 import com.example.burserker.beopdong.domain.purpose.domain.Purpose;
 import com.example.burserker.beopdong.domain.purpose.domain.repository.PurposeRepository;
+import com.example.burserker.beopdong.domain.purpose.domain.PurposeUsage;
+import com.example.burserker.beopdong.domain.purpose.domain.repository.PurposeUsageRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,6 +28,7 @@ public class UpdateVisitPurposeService {
     private final LogRepository logRepository;
     private final VisitPurposeRepository visitPurposeRepository;
     private final PurposeRepository purposeRepository;
+    private final PurposeUsageRepository purposeUsageRepository;
     private final QueryLogDetailService queryLogDetailService;
 
     @Transactional
@@ -39,6 +44,13 @@ public class UpdateVisitPurposeService {
                 .orElseThrow(() -> InvalidVisitPurposeException.EXCEPTION);
         if (purposes.stream().noneMatch(purpose -> purpose.getId().equals(rest.getId()))) {
             purposes.add(rest);
+        }
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+        for (PurposeUsage usage : purposeUsageRepository.findUsagesByLogId(log.getId())) {
+            if (!usage.isCompleted() && usage.getEndAt().isAfter(now)
+                    && !purposeIds.contains(usage.getPurpose().getId())) {
+                throw InvalidVisitPurposeException.EXCEPTION;
+            }
         }
         List<VisitPurpose> previous = visitPurposeRepository.findAllByLogId(log.getId());
         for (VisitPurpose selected : previous) {

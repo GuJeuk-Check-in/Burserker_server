@@ -33,6 +33,9 @@ public class CreateSpringFormService {
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
 
         Log log = logFacade.getLogById(request.logId());
+        if (log.getUser() == null) {
+            throw InvalidFormPurposeException.EXCEPTION;
+        }
         Purpose purpose = purposeRepository.findById(request.purpose())
                 .orElseThrow(() -> InvalidFormPurposeException.EXCEPTION);
 

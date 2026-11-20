@@ -112,7 +112,7 @@ public class PurposeUsage extends BaseIdEntity {
      * 현재 참가자 전원의 방명록 이름을 순서대로 연결하여 기존 문자열 응답 형식을 유지한다.
      */
     public String getName() {
-        return logs.stream().map(Log::getName).collect(Collectors.joining(", "));
+        return logs.stream().map(Log::getName).filter(name -> name != null).collect(Collectors.joining(", "));
     }
 
     public void complete(LocalDateTime endAt) {

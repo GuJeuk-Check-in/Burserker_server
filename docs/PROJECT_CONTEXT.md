@@ -1,16 +1,18 @@
 # 구즉·법동 프로젝트 현황
 
-> 최종 갱신: 2026-11-18. 영역별 확인 시점과 저장소 설정·실제 서버 상태를 구분합니다.
+> 최종 갱신: 2026-11-19. 영역별 확인 시점과 저장소 설정·실제 서버 상태를 구분합니다.
 > 과거 변경 이력은 Git에서 확인하고, 이 문서에는 현재 구조와 작업에 필요한 내용만 유지합니다.
 
 ## 1. 먼저 확인할 사항
 
+- 2026-11-19 V5__support_manual_logs.sql을 추가했다. log의 회원 연결·이름·연락처에 NULL을 허용하고 visit_purpose·note·deleted를 추가한다. 방명록 삭제는 원본 및 시설 이용 기록을 보존하는 표시 방식이며, 방명록 조회와 향후 방명록 Excel 집계에서는 deleted=true를 제외한다. 격리된 MySQL 8.0에서 V4→V5 적용·기존 데이터 및 시설 연결 보존·Hibernate 스키마 검증을 통과했으며 실제 서비스 DB에는 아직 적용하지 않았다.
+
 - 2026-11-18 법동은 신청 시 PurposeUsage와 참가 방문 목록만 저장하고, 정상·팀 조기 종료 시 SUCCESS PurposeLog 한 건을 생성하도록 변경했다. PENDING 신청서 사전 저장과 조회 시 완료 추론은 제거했다.
 - 기존 EndPurposeUsageService의 completeExpiredUsages를 fixedDelay 1000ms로 실행한다. 정상 이력에는 원래 예정 종료 시각을, 조기 종료에는 요청 처리 시각을 기록한다. 자동 처리 전까지 완료 이력 기반 집계에는 짧은 지연이 있을 수 있다.
 - 별도 Member Entity는 삭제하고 PurposeUsage.logs가 기존 연결 테이블을 사용한다. 단일 기기 운영 범위에 맞춰 사용자 요청으로 추가했던 합류·종료 조회의 DB 잠금은 제거했다. 별도 동시성 대응은 구현 범위에서 제외했다. 관리자의 완료 이력 수정은 원본에 반영하지 않는다.
-- V4__complete_usage_on_end.sql을 작성했다. joined_at 필수 조건을 해제하고 기존 완료 이력·지난 PENDING을 완료로 맞춘다. 진행 중 PENDING 초안은 삭제하지 않고 이용 연결만 해제해, 실제 종료 시 새 SUCCESS 이력을 생성할 수 있도록 한다. V1/V2/V3는 변경하지 않았다. 사용자 요청으로 V4 테스트·DB 실행은 하지 않았다. 실제 DB 적용 전 백업·데이터 확인과 검증이 필요하다.
+- V4__complete_usage_on_end.sql을 작성했다. joined_at 필수 조건을 해제하고 기존 완료 이력·지난 PENDING을 완료로 맞춘다. 진행 중 PENDING 초안은 삭제하지 않고 이용 연결만 해제해, 실제 종료 시 새 SUCCESS 이력을 생성할 수 있도록 한다. V1/V2/V3는 변경하지 않았다. 2026-11-18 사용자가 제공한 서버 결과에서 법동 스테이징의 V1 baseline 및 V2~V4 success=1을 확인했다. 임시 baseline 옵션 제거 후 내부 /purpose는 HTTP 200이었다. 운영 DB 적용은 확인하지 않았다.
 
-- 2026-11-11 법동 Flyway V1/V2를 추가하고 사용자 승인으로 로컬 localhost:3306/BeopDong에 적용했습니다. 스테이징·운영 DB에는 적용하지 않았습니다.
+- 2026-11-11 법동 Flyway V1/V2를 추가하고 사용자 승인으로 로컬 localhost:3306/BeopDong에 적용했습니다. 운영 DB 적용은 확인하지 않았습니다.
 - 로컬 적용: 회원 15명·방명록 15건·purpose_log 29건·옛 log_purpose 4건을 보존했습니다. visit_purpose 48건, purpose_usage와 참가자 각 9건을 생성했고, Hibernate 스키마 검증이 통과했습니다. 백업은 저장소 밖 C:/env/backups/beopdong에 있습니다.
 - 법동은 ddl-auto: none을 유지하고 법동 전용 db/migration을 사용합니다. 기존 DB 최초 전환은 구조 확인·백업 후 version 1 baseline이 필요합니다. 기본 자동 baseline과 clean은 비활성화합니다.
 - 데이터 이전과 적용·복구 절차는 [법동 DB 마이그레이션](../ops/beopdong/MIGRATION.md)을 확인합니다. 개인 환경변수나 DB dump를 출력·커밋하지 않습니다.
