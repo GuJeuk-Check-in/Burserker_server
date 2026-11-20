@@ -32,30 +32,27 @@ public class QueryLogDetailService {
         List<VisitPurpose> selected = visitPurposeRepository.findAllByLogId(logId);
         List<PurposeUsage> usages = purposeUsageRepository.findUsagesByLogId(logId);
         List<LogDetailResponse.PurposeResponse> purposes = List.of(
-                toPurposeResponse("pcForm", "인터넷", selected, usages),
-                toPurposeResponse("pingForm", "탁구", selected, usages),
-                toPurposeResponse("singForm", "노래방", selected, usages)
+                toPurposeResponse("pcForm", "인터넷", selected, usages, now),
+                toPurposeResponse("pingForm", "탁구", selected, usages, now),
+                toPurposeResponse("singForm", "노래방", selected, usages, now)
         );
-        long purposeRemainTime = 0;
-        for (PurposeUsage usage : usages) {
-            if (!usage.isCompleted() && usage.getEndAt().isAfter(now)) {
-                long seconds = Duration.between(now, usage.getEndAt()).getSeconds();
-                purposeRemainTime = Math.max(0, (seconds + 59) / 60);
-                break;
-            }
-        }
-        return new LogDetailResponse(log.getName(), purposes, log.getOrganRemainTime(now), purposeRemainTime);
+        return new LogDetailResponse(log.getName(), purposes, log.getOrganRemainTime(now));
     }
 
-    private LogDetailResponse.PurposeResponse toPurposeResponse(String form, String name, List<VisitPurpose> selected, List<PurposeUsage> usages) {
+    private LogDetailResponse.PurposeResponse toPurposeResponse(String form, String name, List<VisitPurpose> selected, List<PurposeUsage> usages, LocalDateTime now) {
         boolean purposeSelect = selected.stream().anyMatch(purpose -> name.equals(purpose.getPurpose().getPurposeName()));
         String state = "none";
+        long remainTime = 0;
         for (PurposeUsage usage : usages) {
             if (name.equals(usage.getPurpose().getPurposeName())) {
                 state = usage.isCompleted() ? "success" : "pending";
+                if (!usage.isCompleted() && usage.getEndAt().isAfter(now)) {
+                    long seconds = Duration.between(now, usage.getEndAt()).getSeconds();
+                    remainTime = (seconds + 59) / 60;
+                }
                 break;
             }
         }
-        return new LogDetailResponse.PurposeResponse(form, purposeSelect, state);
+        return new LogDetailResponse.PurposeResponse(form, purposeSelect, state, remainTime);
     }
 }
