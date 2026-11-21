@@ -20,24 +20,58 @@ import java.time.LocalDateTime;
 public class Log extends BaseIdEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
     private User user;
 
-    @Column(nullable = false)
     private String name;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private Gender gender;
 
-    @Column(nullable = false)
-    private int age;
+    private Integer age;
+
+    private String phone;
+
+    private String visitPurpose;
+
+    private String note;
 
     @Column(nullable = false)
-    private String phone;
+    private boolean deleted;
 
     @Column(nullable = false)
     private LocalDateTime visitAt;
+
+    public static Log createAdult(LocalDateTime visitAt) {
+        return Log.builder().visitAt(visitAt).build();
+    }
+
+    public static Log createForOrgan(String name, int age, Gender gender, String phone,
+                                     LocalDateTime visitAt, String visitPurpose, String note) {
+        Log log = new Log();
+        log.update(name, age, gender, phone, visitAt, visitPurpose, note);
+        return log;
+    }
+
+    public void update(String name, Integer age, Gender gender, String phone,
+                       LocalDateTime visitAt, String visitPurpose, String note) {
+        boolean adult = age == null || age >= 20;
+        this.name = adult ? null : blankToNull(name);
+        this.age = age;
+        this.gender = gender;
+        this.phone = adult ? null : phone;
+        this.visitAt = visitAt;
+        this.visitPurpose = adult ? blankToNull(visitPurpose) : null;
+        this.note = blankToNull(note);
+    }
+
+    public void markDeleted() {
+        this.deleted = true;
+    }
+
+    private static String blankToNull(String value) {
+        return value == null || value.isBlank() ? null : value;
+    }
 
     public long getOrganRemainTime(LocalDateTime now) {
         long elapsedMinutes = Duration.between(visitAt, now).toMinutes();

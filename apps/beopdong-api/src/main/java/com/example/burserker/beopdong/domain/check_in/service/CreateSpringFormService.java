@@ -41,7 +41,10 @@ public class CreateSpringFormService {
             throw InvalidFormPurposeException.EXCEPTION;
         }
 
-        if (purposeUsageRepository.existsActiveUser(log.getUser().getId(), now)) {
+        boolean active = log.getUser() == null
+                ? purposeUsageRepository.existsActiveLog(log.getId(), now)
+                : purposeUsageRepository.existsActiveUser(log.getUser().getId(), now);
+        if (active) {
             throw UsageAlreadyActiveException.EXCEPTION;
         }
 

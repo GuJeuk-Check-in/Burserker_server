@@ -91,7 +91,9 @@ public class PurposeUsage extends BaseIdEntity {
             throw InvalidFormPurposeException.EXCEPTION;
         }
         if (completed || !now.isBefore(endAt) || count >= capacity
-                || logs.stream().anyMatch(visitor -> visitor.getUser().getId().equals(log.getUser().getId()))) {
+                || logs.stream().anyMatch(visitor -> visitor.getId().equals(log.getId())
+                    || (visitor.getUser() != null && log.getUser() != null
+                        && visitor.getUser().getId().equals(log.getUser().getId())))) {
             throw UsageAlreadyActiveException.EXCEPTION;
         }
         addLog(log);
@@ -112,7 +114,7 @@ public class PurposeUsage extends BaseIdEntity {
      * 현재 참가자 전원의 방명록 이름을 순서대로 연결하여 기존 문자열 응답 형식을 유지한다.
      */
     public String getName() {
-        return logs.stream().map(Log::getName).collect(Collectors.joining(", "));
+        return logs.stream().map(log -> log.getName() == null ? "성인" : log.getName()).collect(Collectors.joining(", "));
     }
 
     public void complete(LocalDateTime endAt) {
