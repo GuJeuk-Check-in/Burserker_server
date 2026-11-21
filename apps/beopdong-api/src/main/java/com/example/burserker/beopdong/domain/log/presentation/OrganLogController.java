@@ -14,8 +14,6 @@ import com.example.burserker.beopdong.global.error.exception.ErrorCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.validation.FieldError;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -55,13 +53,6 @@ public class OrganLogController {
     @DeleteMapping("/{logId}")
     public void deleteLog(@PathVariable Long logId) {
         deleteOrganLogService.execute(logId);
-    }
-
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidRequest(MethodArgumentNotValidException e) {
-        FieldError error = e.getBindingResult().getFieldErrors().get(0);
-        ErrorCode code = "NotNull".equals(error.getCode()) ? ErrorCode.ORGAN_LOG_REQUIRED : ErrorCode.BAD_REQUEST;
-        return ResponseEntity.badRequest().body(ErrorResponse.of(code, error.getDefaultMessage()));
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
