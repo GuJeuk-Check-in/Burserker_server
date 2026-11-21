@@ -47,8 +47,9 @@ public class QueryLogDetailService {
             if (name.equals(usage.getPurpose().getPurposeName())) {
                 state = usage.isCompleted() ? "success" : "pending";
                 if (!usage.isCompleted() && usage.getEndAt().isAfter(now)) {
-                    long seconds = Duration.between(now, usage.getEndAt()).getSeconds();
-                    remainTime = (seconds + 59) / 60;
+                    Duration remaining = Duration.between(now, usage.getEndAt());
+                    long minutes = remaining.toMinutes();
+                    remainTime = minutes + (remaining.compareTo(Duration.ofMinutes(minutes)) > 0 ? 1 : 0);
                 }
                 break;
             }
