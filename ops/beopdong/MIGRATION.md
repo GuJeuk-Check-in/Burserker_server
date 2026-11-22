@@ -9,6 +9,8 @@
 - V2: 방문 선택, 실제 이용 회차, 참가자를 분리하고 완료 이력과 연결한다.
 - V3: 기존 이용과 PENDING 신청서를 연결하고, 신청서가 없는 기존 이용의 초안을 준비한다.
 - V4: Member 통합과 종료 시 SUCCESS 이력 생성 방식으로 전환한다. 기존 합류 시각·신청서 원본은 삭제하지 않는다.
+- V5: 비회원 수기 방명록용 NULL 허용, 방문 목적·비고·삭제 표시 컬럼을 추가한다. 기존 행은 deleted=false로 유지한다. 원본 방명록과 연결된 시설 기록은 삭제하지 않는다.
+- V6: 성인 직접 방문용으로 log.age·gender에 NULL을 허용한다. 기존 값은 유지하며, 실제 서비스 DB에는 적용하지 않았다.
 - Hibernate ddl-auto는 none으로 유지한다. 앱 기동 시 Flyway가 미적용 버전을 실행한다.
 - clean은 비활성화한다. 운영 DB에서 clean이나 볼륨 삭제를 사용하지 않는다.
 
@@ -26,7 +28,7 @@
 ## 비어 있는 DB
 
 1. Flyway baseline-on-migrate=false(기본값)를 유지한다.
-2. 수정 앱을 대상 DB로 기동하면 V1, V2, V3, V4 순서로 적용된다.
+2. 수정 앱을 대상 DB로 기동하면 V1, V2, V3, V4, V5, V6 순서로 적용된다.
 3. 기관 로그인 계정과 시설 기본값은 별도 안전한 초기 설정으로 준비한다. 마이그레이션에 비밀번호를 넣지 않는다.
    빈 DB에는 기관이 없으므로 휴식도 아직 없다. 기관 준비 후 휴식 목적을 반드시 만들고 locked=true로 설정한다.
 
@@ -34,7 +36,7 @@
 
 1. 위 구조 확인·백업을 마친 경우에만 baseline version 1을 사용한다.
 2. 최초 기동 한 번에만 Spring 설정 SPRING_FLYWAY_BASELINE_ON_MIGRATE=true를 전달한다.
-   앱이 기존 구조를 version 1로 등록하고 V2를 적용한다. 기본 application.yml의 false는 변경하지 않는다.
+   앱이 기존 구조를 version 1로 등록하고 V2 이후 미적용 버전을 적용한다. 기본 application.yml의 false는 변경하지 않는다.
 3. 적용 후 해당 임시 환경변수를 제거한다. 이후 기동에서는 기존 이력에 따라 새 버전만 적용된다.
 4. baseline은 검증·변환 도구가 아니다. 다른 구조를 version 1로 등록해도 자동으로 맞춰주지 않는다.
 
@@ -51,8 +53,9 @@
 
 ## 적용 확인
 
-flyway_schema_history의 version 1~4가 성공했는지 확인한다. 기존 DB의 version 1은 BASELINE으로 표시된다.
+flyway_schema_history의 version 1~6이 성공했는지 확인한다. 기존 DB의 version 1은 BASELINE으로 표시된다.
 purpose_usage, purpose_usage_member, visit_purpose와 purpose_log.purpose_usage_id가 있어야 한다.
+log.user_id·name·phone·age·gender가 NULL을 허용하고 visit_purpose·note·deleted 컬럼이 있어야 한다.
 기존 회원·방명록 건수와 완료 기록의 PK·이름·인원수가 유지되는지 대조한다.
 진행 중 신청을 조회한 뒤 종료 처리 시 한 회차에 완료 기록이 하나만 생기는지 확인한다.
 

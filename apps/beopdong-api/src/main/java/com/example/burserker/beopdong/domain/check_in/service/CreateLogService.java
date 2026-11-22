@@ -31,8 +31,11 @@ public class CreateLogService {
 
     @Transactional
     public UserSignUpResponse execute(CreateLogRequest request) {
-        User user = userRepository.findById(request.userId())
-                .orElseThrow(() -> UserNotFoundException.EXCEPTION);
+        User user = null;
+        if (request.userId() != null) {
+            user = userRepository.findById(request.userId())
+                    .orElseThrow(() -> UserNotFoundException.EXCEPTION);
+        }
         List<Long> purposeIds = request.purpose().stream().distinct().toList();
         List<Purpose> purposes = new ArrayList<>(purposeRepository.findAllById(purposeIds));
         if (purposes.size() != purposeIds.size()) {
@@ -43,11 +46,14 @@ public class CreateLogService {
         if (purposes.stream().noneMatch(purpose -> purpose.getId().equals(rest.getId()))) {
             purposes.add(rest);
         }
-        Log log = logRepository.save(Log.create(user, LocalDateTime.now(ZoneId.of("Asia/Seoul"))));
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+        Log log = logRepository.save(user == null ? Log.createAdult(now) : Log.create(user, now));
         for (Purpose purpose : purposes) {
             visitPurposeRepository.save(VisitPurpose.create(log, purpose));
         }
-        user.increaseVisitCount();
+        if (user != null) {
+            user.increaseVisitCount();
+        }
         return UserSignUpResponse.from(log.getId(), purposes);
     }
 }

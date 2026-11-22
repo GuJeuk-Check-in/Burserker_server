@@ -1,14 +1,24 @@
 package com.example.burserker.beopdong.domain.log.domain.repository;
 
 import com.example.burserker.beopdong.domain.log.domain.Log;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface LogRepository extends JpaRepository<Log, Long> {
 
-    @Query("SELECT log FROM Log log ORDER BY log.visitAt DESC, log.id DESC")
+    @Override
+    @Query("SELECT log FROM Log log WHERE log.id = :id AND log.deleted = false")
+    Optional<Log> findById(@Param("id") Long id);
+
+    @Query("SELECT log FROM Log log WHERE log.deleted = false ORDER BY log.visitAt DESC, log.id DESC")
     List<Log> findLogs(Pageable pageable);
+
+    @Query("SELECT log FROM Log log WHERE log.deleted = false ORDER BY log.visitAt DESC, log.id DESC")
+    Page<Log> findOrganLogs(Pageable pageable);
 }

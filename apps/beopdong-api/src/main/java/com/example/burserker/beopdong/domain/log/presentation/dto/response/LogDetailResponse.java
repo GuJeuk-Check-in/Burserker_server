@@ -5,9 +5,8 @@ import java.util.List;
 public record LogDetailResponse(
         String name,
         List<PurposeResponse> purpose,
-        long organRemainTime,
-        long purposeRemainTime
+        long organRemainTime
 ) {
-    public record PurposeResponse(String purposeForm, boolean purposeSelect, String purposeState) {
+    public record PurposeResponse(String purposeForm, boolean purposeSelect, String purposeState, long purposeRemainTime) {
     }
 }
