@@ -56,7 +56,7 @@ public class Log extends BaseIdEntity {
     public void update(String name, Integer age, Gender gender, String phone,
                        LocalDateTime visitAt, String visitPurpose, String note) {
         boolean adult = age == null || age >= 20;
-        this.name = adult ? null : blankToNull(name);
+        this.name = blankToNull(name);
         this.age = age;
         this.gender = gender;
         this.phone = adult ? null : phone;
