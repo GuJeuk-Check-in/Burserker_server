@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 public record CreateLogRequest(
+        @NotNull(message = "빈칸을 채워주세요!")
         Long userId,
 
         @NotEmpty(message = "빈칸을 채워주세요!")
