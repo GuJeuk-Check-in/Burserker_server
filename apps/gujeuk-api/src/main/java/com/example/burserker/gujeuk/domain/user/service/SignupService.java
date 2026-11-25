@@ -71,7 +71,7 @@ public class SignupService {
         logRepository.save(log);
 
         if (request.reservationTime() != null) {
-            if (!purpose.isReservationStatus()) {
+            if (!purpose.isReservable()) {
                 throw ReservationNotAllowedException.EXCEPTION;
             }
 

@@ -35,7 +35,7 @@ public class CreateReservationService {
         Purpose purpose = purposeRepository.findByOrganIdAndPurposeName(GUJEUK_ORGAN_ID, request.purpose().trim())
                 .orElseThrow(() -> PurposeNotFoundException.EXCEPTION);
 
-        if (!purpose.isReservationStatus()) {
+        if (!purpose.isReservable()) {
             throw ReservationNotAllowedException.EXCEPTION;
         }
 
