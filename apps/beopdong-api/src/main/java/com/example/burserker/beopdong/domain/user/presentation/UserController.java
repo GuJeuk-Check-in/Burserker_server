@@ -1,7 +1,7 @@
 package com.example.burserker.beopdong.domain.user.presentation;
 
 import com.example.burserker.beopdong.domain.user.presentation.dto.response.UserDetailResponse;
-import com.example.burserker.beopdong.domain.user.presentation.dto.response.UserListResponse;
+import com.example.burserker.beopdong.domain.user.presentation.dto.response.UserSliceWithTotalResponse;
 import com.example.burserker.beopdong.domain.user.service.QueryUserDetailService;
 import com.example.burserker.beopdong.domain.user.service.QueryUserListService;
 import com.example.burserker.beopdong.domain.user.presentation.dto.request.UpdateUserRequest;
@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -29,7 +28,7 @@ public class UserController {
     private final QueryUserListByNameService queryUserListByNameService;
 
     @GetMapping
-    public Slice<UserListResponse> queryAllUser(Pageable pageable) {
+    public UserSliceWithTotalResponse queryAllUser(Pageable pageable) {
         return queryUserListService.execute(pageable);
     }
 

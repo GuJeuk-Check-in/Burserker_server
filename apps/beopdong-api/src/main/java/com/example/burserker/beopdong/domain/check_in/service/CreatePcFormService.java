@@ -31,6 +31,9 @@ public class CreatePcFormService {
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
 
         Log log = logFacade.getLogById(request.logId());
+        if (log.getAge() == null || log.getAge() >= 20) {
+            throw InvalidFormPurposeException.EXCEPTION;
+        }
         Purpose purpose = visitPurposeRepository.findByLogIdAndPurposePurposeName(log.getId(), "인터넷")
                 .orElseThrow(() -> InvalidFormPurposeException.EXCEPTION).getPurpose();
 

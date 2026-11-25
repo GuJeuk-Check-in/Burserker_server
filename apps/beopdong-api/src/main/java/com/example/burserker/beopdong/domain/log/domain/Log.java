@@ -42,8 +42,8 @@ public class Log extends BaseIdEntity {
     @Column(nullable = false)
     private LocalDateTime visitAt;
 
-    public static Log createAdult(LocalDateTime visitAt) {
-        return Log.builder().visitAt(visitAt).build();
+    public static Log createAdult(Gender gender, LocalDateTime visitAt) {
+        return Log.builder().gender(gender).visitAt(visitAt).build();
     }
 
     public static Log createForOrgan(String name, int age, Gender gender, String phone,

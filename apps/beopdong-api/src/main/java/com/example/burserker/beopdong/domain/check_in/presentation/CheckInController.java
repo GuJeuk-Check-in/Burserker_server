@@ -2,6 +2,7 @@ package com.example.burserker.beopdong.domain.check_in.presentation;
 
 import com.example.burserker.beopdong.domain.check_in.presentation.dto.request.PcFormRequest;
 import com.example.burserker.beopdong.domain.check_in.presentation.dto.request.CreateLogRequest;
+import com.example.burserker.beopdong.domain.check_in.presentation.dto.request.CreateAdultLogRequest;
 import com.example.burserker.beopdong.domain.check_in.presentation.dto.request.UpdateVisitPurposeRequest;
 import com.example.burserker.beopdong.domain.check_in.presentation.dto.response.UpdateVisitPurposeResponse;
 import com.example.burserker.beopdong.domain.check_in.presentation.dto.request.UserExistsRequest;
@@ -26,6 +27,7 @@ public class CheckInController {
     private final CreateSpringFormService createSpringFormService;
     private final CreatePcFormService createPcFormService;
     private final CreateLogService createLogService;
+    private final CreateAdultLogService createAdultLogService;
     private final UpdateVisitPurposeService updateVisitPurposeService;
 
     @GetMapping(params = "phone")
@@ -36,6 +38,12 @@ public class CheckInController {
     @PostMapping
     public UserSignUpResponse createLog(@RequestBody @Valid CreateLogRequest request) {
         return createLogService.execute(request);
+    }
+
+    @PostMapping("/adult")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void createAdultLog(@RequestBody @Valid CreateAdultLogRequest request) {
+        createAdultLogService.execute(request);
     }
 
     @PatchMapping("/purpose")
