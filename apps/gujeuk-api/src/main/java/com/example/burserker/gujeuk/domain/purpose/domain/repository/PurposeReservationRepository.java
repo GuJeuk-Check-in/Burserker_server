@@ -1,6 +1,7 @@
 package com.example.burserker.gujeuk.domain.purpose.domain.repository;
 
 import com.example.burserker.gujeuk.domain.purpose.domain.PurposeReservation;
+import com.example.burserker.gujeuk.domain.purpose.domain.enums.ReservationStatus;
 import com.example.burserker.gujeuk.domain.purpose.domain.enums.ReservationTime;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -17,8 +18,9 @@ public interface PurposeReservationRepository extends JpaRepository<PurposeReser
     List<PurposeReservation> findAllByPurposeOrganIdAndReservationDateOrderByStartTimeAsc(
             Long organId, LocalDate reservationDate);
 
-    int countByPurposeOrganIdAndReservationDateAndStartTimeAndPurposeReservationStatusTrue(
-            Long organId, LocalDate reservationDate, ReservationTime startTime);
+    int countByPurposeOrganIdAndReservationDateAndStartTimeAndPurposeReservationStatus(
+            Long organId, LocalDate reservationDate, ReservationTime startTime,
+            ReservationStatus reservationStatus);
 
     int countByPurposeOrganIdAndReservationDateAndStartTime(
             Long organId, LocalDate reservationDate, ReservationTime startTime);
