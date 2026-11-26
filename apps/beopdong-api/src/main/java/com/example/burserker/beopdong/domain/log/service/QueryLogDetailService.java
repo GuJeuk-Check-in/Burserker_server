@@ -1,6 +1,7 @@
 package com.example.burserker.beopdong.domain.log.service;
 
 import com.example.burserker.beopdong.domain.log.domain.Log;
+import com.example.burserker.beopdong.domain.log.exception.LogCheckedOutException;
 import com.example.burserker.beopdong.domain.log.domain.VisitPurpose;
 import com.example.burserker.beopdong.domain.log.exception.LogDetailNotFoundException;
 import com.example.burserker.beopdong.domain.log.domain.repository.LogRepository;
@@ -29,6 +30,9 @@ public class QueryLogDetailService {
         Log log = logRepository.findById(logId)
                 .orElseThrow(() -> LogDetailNotFoundException.EXCEPTION);
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+        if (log.isCheckedOut()) {
+            throw LogCheckedOutException.EXCEPTION;
+        }
         List<VisitPurpose> selected = visitPurposeRepository.findAllByLogId(logId);
         List<PurposeUsage> usages = purposeUsageRepository.findUsagesByLogId(logId);
         List<LogDetailResponse.PurposeResponse> purposes = List.of(

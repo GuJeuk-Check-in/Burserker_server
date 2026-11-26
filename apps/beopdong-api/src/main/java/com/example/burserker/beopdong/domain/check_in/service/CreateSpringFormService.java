@@ -4,6 +4,7 @@ import com.example.burserker.beopdong.domain.check_in.presentation.dto.request.S
 import com.example.burserker.beopdong.domain.check_in.exception.InvalidFormPurposeException;
 import com.example.burserker.beopdong.domain.check_in.exception.UsageAlreadyActiveException;
 import com.example.burserker.beopdong.domain.log.domain.Log;
+import com.example.burserker.beopdong.domain.log.exception.LogCheckedOutException;
 import com.example.burserker.beopdong.domain.purpose.domain.PurposeUsage;
 import com.example.burserker.beopdong.domain.purpose.domain.repository.PurposeUsageRepository;
 import com.example.burserker.beopdong.domain.log.domain.repository.VisitPurposeRepository;
@@ -33,6 +34,9 @@ public class CreateSpringFormService {
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
 
         Log log = logFacade.getLogById(request.logId());
+        if (log.isCheckedOut()) {
+            throw LogCheckedOutException.EXCEPTION;
+        }
         if (log.getAge() == null || log.getAge() >= 20) {
             throw InvalidFormPurposeException.EXCEPTION;
         }
