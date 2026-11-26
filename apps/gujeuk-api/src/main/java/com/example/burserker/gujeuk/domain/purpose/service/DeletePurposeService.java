@@ -23,9 +23,10 @@ public class DeletePurposeService {
 
     @Transactional
     public void execute(Long organId, Long id) {
-        organFacade.getOrganById(organId);
-
+        // 잠금 조회를 첫 쿼리로 두어, 이후 일반 조회가 잠금 획득 뒤의 스냅샷을 보도록 한다.
         Purpose purpose = purposeFacade.getPurposeWithLock(id, organId);
+
+        organFacade.getOrganById(organId);
         int purposeIndex = purpose.getPurposeIndex();
 
         purposeReservationRepository.deleteAllByPurposeId(purpose.getId());

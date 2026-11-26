@@ -13,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class CreateSubPurposeService {
@@ -22,10 +24,13 @@ public class CreateSubPurposeService {
 
     @Transactional
     public void execute(Long organId, SubPurposeRequest request) {
+        // 잠금 조회를 첫 쿼리로 두어, 이후 일반 조회가 잠금 획득 뒤의 스냅샷을 보도록 한다.
+        Optional<Purpose> lockedPurpose =
+                purposeRepository.findWithLockByOrganIdAndPurposeName(organId, request.purpose());
+
         Organ organ = organFacade.getOrganById(organId);
 
-        Purpose purpose = purposeRepository.findWithLockByOrganIdAndPurposeName(organId, request.purpose())
-                .orElseGet(() -> createPurpose(organ, request.purpose()));
+        Purpose purpose = lockedPurpose.orElseGet(() -> createPurpose(organ, request.purpose()));
 
         purpose.changeToSubInclude();
 
