@@ -2,6 +2,7 @@ package com.example.burserker.gujeuk.domain.reservation.service;
 
 import com.example.burserker.gujeuk.domain.purpose.domain.repository.PurposeRepository;
 import com.example.burserker.gujeuk.domain.purpose.domain.repository.PurposeReservationRepository;
+import com.example.burserker.gujeuk.domain.purpose.domain.enums.ReservationStatus;
 import com.example.burserker.gujeuk.domain.purpose.domain.enums.ReservationTime;
 import com.example.burserker.gujeuk.domain.reservation.presentation.dto.response.ReservationResponse;
 import com.example.burserker.gujeuk.domain.reservation.presentation.dto.response.ReservationStatusResponse;
@@ -48,11 +49,12 @@ public class QueryReservationStatusService {
 
         int reservedRequiredCount = currentSlot
                 .map(slot -> purposeReservationRepository
-                        .countByPurposeOrganIdAndReservationDateAndStartTimeAndPurposeReservationStatusTrue(
-                                organId, today, slot))
+                        .countByPurposeOrganIdAndReservationDateAndStartTimeAndPurposeReservationStatus(
+                                organId, today, slot, ReservationStatus.RESERVATION))
                 .orElse(0);
 
-        int requiredCount = purposeRepository.countByOrganIdAndReservationStatusTrue(organId);
+        int requiredCount = purposeRepository.countByOrganIdAndReservationStatus(
+                organId, ReservationStatus.RESERVATION);
 
         return new ReservationStatusResponse(inUseCount, requiredCount - reservedRequiredCount, reservations);
     }

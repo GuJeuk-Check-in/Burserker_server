@@ -27,7 +27,7 @@ public class QueryAvailableReservationTimeListService {
         Purpose purpose = purposeRepository.findByOrganIdAndPurposeName(GUJEUK_ORGAN_ID, purposeName.trim())
                 .orElseThrow(() -> PurposeNotFoundException.EXCEPTION);
 
-        if (!purpose.isReservationStatus()) {
+        if (!purpose.isReservable()) {
             throw ReservationNotAllowedException.EXCEPTION;
         }
 

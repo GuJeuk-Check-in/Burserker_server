@@ -1,5 +1,6 @@
 package com.example.burserker.gujeuk.domain.purpose.presentation.dto.request;
 
+import com.example.burserker.gujeuk.domain.purpose.domain.enums.ReservationStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -10,6 +11,6 @@ public record PurposeRequest(
         String purpose,
 
         @NotNull(message = "예약 필요 여부를 선택해주세요.")
-        Boolean reservationStatus
+        ReservationStatus reservationStatus
 ) {
 }

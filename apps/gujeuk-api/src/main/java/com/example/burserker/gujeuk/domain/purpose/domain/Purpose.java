@@ -1,6 +1,7 @@
 package com.example.burserker.gujeuk.domain.purpose.domain;
 
 import com.example.burserker.gujeuk.domain.organ.domain.Organ;
+import com.example.burserker.gujeuk.domain.purpose.domain.enums.ReservationStatus;
 import com.example.burserker.gujeuk.global.entity.BaseIdEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -22,15 +23,20 @@ public class Purpose extends BaseIdEntity {
     @JoinColumn(name = "organ_id", nullable = false)
     private Organ organ;
 
-    @Column(nullable = false)
-    private boolean reservationStatus;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private ReservationStatus reservationStatus;
 
-    public void updatePurpose(String purposeName, boolean reservationStatus) {
+    public void updatePurpose(String purposeName, ReservationStatus reservationStatus) {
         this.purposeName = purposeName;
         this.reservationStatus = reservationStatus;
     }
 
     public void updatePurposeIndex(int purposeIndex) {
         this.purposeIndex = purposeIndex;
+    }
+
+    public boolean isReservable() {
+        return this.reservationStatus == ReservationStatus.RESERVATION;
     }
 }
