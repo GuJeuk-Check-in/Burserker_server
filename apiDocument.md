@@ -811,14 +811,14 @@ Body: Excel 파일 (byte[])
 ```json
 {
   "purpose": "string",
-  "reservationStatus": "RESERVATION|NONE|SUB_INCLUDE"
+  "reservationStatus": "RESERVATION|NONE"
 }
 ```
 
 | 필드 | 타입 | 필수 | 설명 |
 |------|------|------|------|
 | purpose | string | O | 방문목적 (1~30자) |
-| reservationStatus | string | O | 예약 상태 (`RESERVATION`: 예약 필요, `NONE`: 예약 불필요, `SUB_INCLUDE`: 하위 방문 목적 있음) |
+| reservationStatus | string | O | 예약 상태 (`RESERVATION`: 예약 필요, `NONE`: 예약 불필요). `SUB_INCLUDE`는 하위 방문목적 생성(`POST /purpose/sub`)에서만 설정됩니다 |
 
 **Response (201 Created)**
 ```
@@ -828,6 +828,9 @@ Body: Excel 파일 (byte[])
 **Error List**
 <details>
 <summary><code>409</code> PURPOSE_ALREADY_EXIST - 이미 존재하는 방문 목적입니다</summary>
+</details>
+<details>
+<summary><code>400</code> SUB_INCLUDE_NOT_ALLOWED - 하위 방문목적 생성으로만 설정할 수 있는 상태입니다</summary>
 </details>
 <details>
 <summary><code>400</code> BAD_REQUEST - 요청 데이터 검증 실패</summary>
@@ -865,6 +868,9 @@ Body: Excel 파일 (byte[])
 | purpose | string | O | 방문목적 (1~30자) |
 | reservationStatus | string | O | 예약 상태 (`RESERVATION`: 예약 필요, `NONE`: 예약 불필요, `SUB_INCLUDE`: 하위 방문 목적 있음) |
 
+- 하위 방문목적이 있는 방문목적은 `reservationStatus`를 `SUB_INCLUDE`로만 보낼 수 있습니다 (이름만 수정 가능).
+- 하위 방문목적이 없는 방문목적은 `SUB_INCLUDE`로 바꿀 수 없습니다. `SUB_INCLUDE`는 하위 방문목적 생성(`POST /purpose/sub`)에서만 설정됩니다.
+
 **Response (200 OK)**
 ```
 없음 (void)
@@ -876,6 +882,12 @@ Body: Excel 파일 (byte[])
 </details>
 <details>
 <summary><code>409</code> PURPOSE_ALREADY_EXIST - 이미 존재하는 방문 목적입니다</summary>
+</details>
+<details>
+<summary><code>409</code> PURPOSE_STATUS_FIXED - 하위 방문목적이 있는 방문목적은 예약 상태를 변경할 수 없습니다</summary>
+</details>
+<details>
+<summary><code>400</code> SUB_INCLUDE_NOT_ALLOWED - 하위 방문목적 생성으로만 설정할 수 있는 상태입니다</summary>
 </details>
 <details>
 <summary><code>401</code> INVALID_TOKEN - 유효하지 않은 토큰입니다</summary>
@@ -896,6 +908,8 @@ Body: Excel 파일 (byte[])
 | 파라미터 | 타입 | 설명 |
 |----------|------|------|
 | id | long | 방문목적 ID |
+
+- 방문목적을 삭제하면 그 아래의 하위 방문목적과 예약도 함께 삭제됩니다.
 
 **Response (204 No Content)**
 ```
@@ -1008,6 +1022,59 @@ Body: Excel 파일 (byte[])
 
 ---
 
+### 7. 하위 방문목적 생성
+| 항목 | 내용 |
+|------|------|
+| **Domain** | Purpose |
+| **기능** | 하위 시설이 있는 방문목적에 하위 방문목적 생성 (하위가 없는 방문목적은 방문목적 생성 API 사용) |
+| **HTTP Method** | `POST` |
+| **API Path** | `/purpose/sub` |
+| **토큰 필요** | O (Access Token) |
+
+**Request Body**
+```json
+{
+  "purpose": "게임",
+  "reservationStatus": "SUB_INCLUDE",
+  "subPurpose": "PC 1",
+  "subPurposeReservation": true
+}
+```
+
+| 필드 | 타입 | 필수 | 설명 |
+|------|------|------|------|
+| purpose | string | O | 상위 방문목적 이름 (1~30자) |
+| reservationStatus | string | O | 상위 방문목적 상태. 이 API에서는 항상 `SUB_INCLUDE`로 저장됩니다 |
+| subPurpose | string | O | 하위 방문목적 이름 (1~30자) |
+| subPurposeReservation | boolean | O | 하위 시설 예약 필요 여부 (`true`: 예약 필요, `false`: 예약 불필요) |
+
+- `purpose`가 기관에 없으면 방문목적을 새로 만들고, 그 아래에 하위 방문목적을 만듭니다. 새 방문목적의 정렬 순서는 방문목적 목록의 맨 뒤로 자동 부여됩니다.
+- 이미 있는 방문목적이면 `reservationStatus`를 `SUB_INCLUDE`로 바꾸고 그 아래에 하위 방문목적을 만듭니다.
+- 하위 방문목적이 하나라도 있는 방문목적의 `reservationStatus`는 `SUB_INCLUDE`로 고정됩니다.
+- 같은 방문목적 안에서 하위 방문목적 이름은 중복될 수 없습니다. 다른 방문목적에는 같은 이름이 있어도 됩니다.
+- 하위 방문목적의 정렬 순서는 해당 방문목적의 하위 목록 맨 뒤로 자동 부여됩니다.
+
+**Response (201 Created)**
+```
+없음 (void)
+```
+
+**Error List**
+<details>
+<summary><code>400</code> BAD_REQUEST - purpose 또는 subPurpose가 비어 있거나 30자를 넘을 때, reservationStatus 또는 subPurposeReservation이 없을 때</summary>
+</details>
+<details>
+<summary><code>401</code> INVALID_TOKEN - 유효하지 않은 토큰입니다</summary>
+</details>
+<details>
+<summary><code>404</code> ORGAN_NOT_FOUND - 해당 기관 계정이 존재하지 않습니다</summary>
+</details>
+<details>
+<summary><code>409</code> SUB_PURPOSE_ALREADY_EXIST - 이미 존재하는 하위 방문목적입니다</summary>
+</details>
+
+---
+
 ## Error Code 목록
 
 ### 인증 관련 에러 (Authentication)
@@ -1046,6 +1113,9 @@ Body: Excel 파일 (byte[])
 |-----------|-----------|------|
 | PURPOSE_NOT_FOUND | 404 | 존재하지 않는 방문목적입니다 |
 | PURPOSE_ALREADY_EXIST | 409 | 이미 존재하는 방문 목적입니다 |
+| SUB_PURPOSE_ALREADY_EXIST | 409 | 이미 존재하는 하위 방문목적입니다 |
+| PURPOSE_STATUS_FIXED | 409 | 하위 방문목적이 있는 방문목적은 예약 상태를 변경할 수 없습니다 |
+| SUB_INCLUDE_NOT_ALLOWED | 400 | 하위 방문목적 생성으로만 설정할 수 있는 상태입니다 |
 
 ### 기타 에러
 | 에러 코드 | HTTP 상태 | 설명 |
@@ -1115,7 +1185,7 @@ Body: Excel 파일 (byte[])
 }
 ```
 
-- `reservationStatus=RESERVATION`인 목적에만 예약할 수 있습니다. 값은 `RESERVATION`(예약 필요), `NONE`(예약 불필요), `SUB_INCLUDE`(하위 방문 목적 있음, 추후 기능용)이며 기존 방문 목적의 기본값은 `NONE`입니다. `/purpose` 생성·수정 요청에 `reservationStatus`는 필수이고, 방문 목적 조회 응답에도 포함됩니다.
+- `reservationStatus=RESERVATION`인 목적에만 예약할 수 있습니다. 값은 `RESERVATION`(예약 필요), `NONE`(예약 불필요), `SUB_INCLUDE`(하위 방문 목적 있음)이며 기존 방문 목적의 기본값은 `NONE`입니다. `SUB_INCLUDE`는 `POST /purpose/sub`로 하위 방문목적을 만들 때 상위 방문목적에 저장됩니다. `/purpose` 생성·수정 요청에 `reservationStatus`는 필수이고, 방문 목적 조회 응답에도 포함됩니다.
 - 예약 날짜는 요청 당일로 저장합니다. 선택 가능한 시작 시각은 09:30~20:30이며, 같은 회원의 여러 예약은 허용하되 같은 시설·날짜·시각에는 한 건만 저장됩니다. 중복 슬롯은 HTTP 409를 반환합니다. 지난 시각인지 서버에서 별도로 검사하지 않습니다.
 - 기존 회원은 이 요청으로 예약만 생성합니다. 체크인 기록이나 방문 횟수는 변경하지 않습니다. 일반 목적의 기존 회원은 기존 `POST /user/check-in`을 사용합니다.
 - `phone`이 null이거나 빈 값이면 이름만으로, 번호가 있으면 이름을 비교하지 않고 전화번호만으로 구즉 회원을 단건 조회합니다. 전화번호는 입력값과 DB 값 모두 하이픈을 제거하여 대조합니다. 앞 단계에서 회원을 확인한 요청을 전제로 하며, 예약 서비스에서 회원 존재 여부를 재검사하지 않습니다. 동일 조건의 회원이 여러 명이면 JPA 단건 조회 오류가 발생합니다.
