@@ -4,6 +4,7 @@ import com.example.burserker.beopdong.domain.log.presentation.dto.request.OrganL
 import com.example.burserker.beopdong.domain.log.presentation.dto.response.CreateOrganLogResponse;
 import com.example.burserker.beopdong.domain.log.presentation.dto.response.OrganLogDetailResponse;
 import com.example.burserker.beopdong.domain.log.service.CreateOrganLogService;
+import com.example.burserker.beopdong.domain.log.service.CheckOutLogService;
 import com.example.burserker.beopdong.domain.log.service.UpdateOrganLogService;
 import com.example.burserker.beopdong.domain.log.service.DeleteOrganLogService;
 import com.example.burserker.beopdong.domain.log.presentation.dto.response.OrganLogListResponse;
@@ -27,6 +28,7 @@ public class OrganLogController {
     private final CreateOrganLogService createOrganLogService;
     private final UpdateOrganLogService updateOrganLogService;
     private final DeleteOrganLogService deleteOrganLogService;
+    private final CheckOutLogService checkOutLogService;
 
     @GetMapping("/organ")
     public OrganLogListResponse queryLogs(@RequestParam(defaultValue = "0") int page,
@@ -48,6 +50,12 @@ public class OrganLogController {
     @PatchMapping("/{logId}")
     public void updateLog(@PathVariable Long logId, @RequestBody @Valid OrganLogRequest request) {
         updateOrganLogService.execute(logId, request);
+    }
+
+    @PatchMapping("/{logId}/check-out")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void checkOut(@PathVariable Long logId) {
+        checkOutLogService.execute(logId);
     }
 
     @DeleteMapping("/{logId}")
