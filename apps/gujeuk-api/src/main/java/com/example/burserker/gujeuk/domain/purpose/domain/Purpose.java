@@ -39,4 +39,8 @@ public class Purpose extends BaseIdEntity {
     public boolean isReservable() {
         return this.reservationStatus == ReservationStatus.RESERVATION;
     }
+
+    public void changeToSubInclude() {
+        this.reservationStatus = ReservationStatus.SUB_INCLUDE;
+    }
 }

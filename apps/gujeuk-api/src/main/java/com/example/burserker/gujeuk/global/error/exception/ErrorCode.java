@@ -26,6 +26,9 @@ public enum ErrorCode {
 
     PURPOSE_NOT_FOUND(404, "존재하지 않는 방문목적입니다."),
     PURPOSE_ALREADY_EXIST(409, "이미 존재하는 방문 목적입니다."),
+    SUB_PURPOSE_ALREADY_EXIST(409, "이미 존재하는 하위 방문목적입니다."),
+    PURPOSE_STATUS_FIXED(409, "하위 방문목적이 있는 방문목적은 예약 상태를 변경할 수 없습니다."),
+    SUB_INCLUDE_NOT_ALLOWED(400, "하위 방문목적 생성으로만 설정할 수 있는 상태입니다."),
 
     RESERVATION_NOT_ALLOWED(400, "예약할 수 없는 방문 목적입니다."),
     RESERVATION_SLOT_UNAVAILABLE(409, "이미 예약된 시간입니다."),
