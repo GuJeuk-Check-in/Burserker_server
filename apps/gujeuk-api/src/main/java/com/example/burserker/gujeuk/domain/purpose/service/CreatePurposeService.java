@@ -1,7 +1,9 @@
 package com.example.burserker.gujeuk.domain.purpose.service;
 
 import com.example.burserker.gujeuk.domain.organ.facade.OrganFacade;
+import com.example.burserker.gujeuk.domain.purpose.domain.enums.ReservationStatus;
 import com.example.burserker.gujeuk.domain.purpose.exception.PurposeAlreadyExistException;
+import com.example.burserker.gujeuk.domain.purpose.exception.SubIncludeNotAllowedException;
 import com.example.burserker.gujeuk.domain.purpose.presentation.dto.request.PurposeRequest;
 import com.example.burserker.gujeuk.domain.purpose.domain.Purpose;
 import com.example.burserker.gujeuk.domain.purpose.domain.repository.PurposeRepository;
@@ -17,6 +19,10 @@ public class CreatePurposeService {
 
     @Transactional
     public void execute(Long organId, PurposeRequest request) {
+        if (request.reservationStatus() == ReservationStatus.SUB_INCLUDE) {
+            throw SubIncludeNotAllowedException.EXCEPTION;
+        }
+
         if(purposeRepository.findByOrganIdAndPurposeName(organId, request.purpose()).isPresent()) {
             throw PurposeAlreadyExistException.EXCEPTION;
         }

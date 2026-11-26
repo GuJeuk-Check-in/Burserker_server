@@ -1,6 +1,10 @@
 package com.example.burserker.gujeuk.domain.purpose.service;
 
 import com.example.burserker.gujeuk.domain.organ.facade.OrganFacade;
+import com.example.burserker.gujeuk.domain.purpose.domain.enums.ReservationStatus;
+import com.example.burserker.gujeuk.domain.purpose.domain.repository.SubPurposeRepository;
+import com.example.burserker.gujeuk.domain.purpose.exception.PurposeStatusFixedException;
+import com.example.burserker.gujeuk.domain.purpose.exception.SubIncludeNotAllowedException;
 import com.example.burserker.gujeuk.domain.purpose.facade.PurposeFacade;
 import com.example.burserker.gujeuk.domain.purpose.presentation.dto.request.PurposeRequest;
 import com.example.burserker.gujeuk.domain.purpose.domain.Purpose;
@@ -13,12 +17,24 @@ import org.springframework.transaction.annotation.Transactional;
 public class UpdatePurposeService {
     private final PurposeFacade purposeFacade;
     private final OrganFacade organFacade;
+    private final SubPurposeRepository subPurposeRepository;
 
     @Transactional
     public void execute(Long organId, Long id, PurposeRequest purposeRequest) {
         organFacade.getOrganById(organId);
 
         Purpose purpose = purposeFacade.getPurposeByIdAndOrganId(id, organId);
+
+        boolean hasSubPurpose = subPurposeRepository.existsByPurposeId(purpose.getId());
+        boolean requestSubInclude = purposeRequest.reservationStatus() == ReservationStatus.SUB_INCLUDE;
+
+        if (hasSubPurpose && !requestSubInclude) {
+            throw PurposeStatusFixedException.EXCEPTION;
+        }
+
+        if (!hasSubPurpose && requestSubInclude) {
+            throw SubIncludeNotAllowedException.EXCEPTION;
+        }
 
         purpose.updatePurpose(purposeRequest.purpose(), purposeRequest.reservationStatus());
     }

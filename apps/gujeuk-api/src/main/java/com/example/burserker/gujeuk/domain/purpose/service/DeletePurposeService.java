@@ -4,6 +4,7 @@ import com.example.burserker.gujeuk.domain.organ.facade.OrganFacade;
 import com.example.burserker.gujeuk.domain.purpose.domain.Purpose;
 import com.example.burserker.gujeuk.domain.purpose.domain.repository.PurposeRepository;
 import com.example.burserker.gujeuk.domain.purpose.domain.repository.PurposeReservationRepository;
+import com.example.burserker.gujeuk.domain.purpose.domain.repository.SubPurposeRepository;
 import com.example.burserker.gujeuk.domain.purpose.facade.PurposeFacade;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ public class DeletePurposeService {
     private final PurposeFacade purposeFacade;
     private final OrganFacade organFacade;
     private final PurposeReservationRepository purposeReservationRepository;
+    private final SubPurposeRepository subPurposeRepository;
 
     @Transactional
     public void execute(Long organId, Long id) {
@@ -27,6 +29,7 @@ public class DeletePurposeService {
         int purposeIndex = purpose.getPurposeIndex();
 
         purposeReservationRepository.deleteAllByPurposeId(purpose.getId());
+        subPurposeRepository.deleteAllByPurposeId(purpose.getId());
         purposeRepository.delete(purpose);
 
         List<Purpose> purposes = purposeRepository.findAllByOrganIdAndPurposeIndexGreaterThan(organId, purposeIndex);
