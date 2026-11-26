@@ -1,6 +1,7 @@
 package com.example.burserker.gujeuk.domain.purpose.presentation;
 
 import com.example.burserker.gujeuk.domain.purpose.presentation.dto.request.PurposeRequest;
+import com.example.burserker.gujeuk.domain.purpose.presentation.dto.request.SubPurposeRequest;
 import com.example.burserker.gujeuk.domain.purpose.presentation.dto.response.PurposeResponse;
 import com.example.burserker.gujeuk.domain.purpose.presentation.dto.request.PurposeMoveRequest;
 import com.example.burserker.gujeuk.domain.purpose.service.*;
@@ -22,6 +23,7 @@ public class PurposeController {
     private final DeletePurposeService deletePurposeService;
     private final QueryPurposeListService queryPurposeListService;
     private final MovePurposeService movePurposeService;
+    private final CreateSubPurposeService createSubPurposeService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -30,6 +32,15 @@ public class PurposeController {
             @RequestBody @Valid PurposeRequest request
     ) {
         createPurposeService.execute(userDetails.organ().getId(), request);
+    }
+
+    @PostMapping("/sub")
+    @ResponseStatus(HttpStatus.CREATED)
+    public void createSubPurpose(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody @Valid SubPurposeRequest request
+    ) {
+        createSubPurposeService.execute(userDetails.organ().getId(), request);
     }
 
     @PatchMapping("/{id}")
