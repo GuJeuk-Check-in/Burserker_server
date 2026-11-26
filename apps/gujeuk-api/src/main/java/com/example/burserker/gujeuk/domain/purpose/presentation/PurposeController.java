@@ -24,6 +24,7 @@ public class PurposeController {
     private final QueryPurposeListService queryPurposeListService;
     private final MovePurposeService movePurposeService;
     private final CreateSubPurposeService createSubPurposeService;
+    private final DeleteSubPurposeService deleteSubPurposeService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -58,6 +59,14 @@ public class PurposeController {
             @PathVariable Long id
     ) {
         deletePurposeService.execute(userDetails.organ().getId(), id);
+    }
+
+    @DeleteMapping("/sub/{id}")
+    public void deleteSubPurpose(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long id
+    ) {
+        deleteSubPurposeService.execute(userDetails.organ().getId(), id);
     }
 
     @GetMapping("/all")
