@@ -17,7 +17,7 @@ public interface LogRepository extends JpaRepository<Log, Long> {
     Optional<Log> findById(@Param("id") Long id);
 
     // 일반 성인 직접 방문은 인원 집계용으로 저장하고 방명록 목록에서는 제외한다.
-    @Query("SELECT log FROM Log log WHERE log.deleted = false AND (log.user IS NOT NULL OR log.age IS NOT NULL) ORDER BY log.visitAt DESC, log.id DESC")
+    @Query("SELECT log FROM Log log WHERE log.deleted = false AND log.checkedOutAt IS NULL AND (log.user IS NOT NULL OR log.age IS NOT NULL) ORDER BY log.visitAt DESC, log.id DESC")
     List<Log> findLogs(Pageable pageable);
 
     @Query("SELECT log FROM Log log WHERE log.deleted = false AND (log.user IS NOT NULL OR log.age IS NOT NULL) ORDER BY log.visitAt DESC, log.id DESC")

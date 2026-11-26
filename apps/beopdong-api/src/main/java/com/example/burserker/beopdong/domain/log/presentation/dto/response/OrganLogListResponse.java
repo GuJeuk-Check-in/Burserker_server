@@ -10,7 +10,7 @@ public record OrganLogListResponse(
         int totalPages,
         boolean last
 ) {
-    public record LogPreview(Long id, String name, LocalDate visitDate, List<Long> purpose) {
+    public record LogPreview(Long id, String name, LocalDate visitDate, List<Long> purpose, boolean checkedOut) {
     }
 
     public record PageableResponse(int pageNumber, int pageSize) {

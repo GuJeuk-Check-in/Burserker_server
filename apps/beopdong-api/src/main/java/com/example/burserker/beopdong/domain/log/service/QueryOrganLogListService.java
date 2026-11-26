@@ -32,7 +32,7 @@ public class QueryOrganLogListService {
             List<Long> purposes = selected.stream()
                     .filter(purpose -> purpose.getLog().getId().equals(log.getId()))
                     .map(purpose -> purpose.getPurpose().getId()).sorted().toList();
-            return new OrganLogListResponse.LogPreview(log.getId(), log.getName(), log.getVisitAt().toLocalDate(), purposes);
+            return new OrganLogListResponse.LogPreview(log.getId(), log.getName(), log.getVisitAt().toLocalDate(), purposes, log.isCheckedOut());
         }).toList();
         return new OrganLogListResponse(content, new OrganLogListResponse.PageableResponse(page, size),
                 logs.getTotalElements(), logs.getTotalPages(), logs.isLast());
