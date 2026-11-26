@@ -52,7 +52,7 @@
 | visitTime | LocalDateTime | O | 기존 회원가입 처리에 필요한 방문시각 |
 | reservationTime | string | X | 함께 예약할 시작 시각 (`HH:mm`, 09:30~20:30). 없으면 예약을 생성하지 않습니다. |
 
-회원 생성 → 체크인 기록 저장 → `reservationTime`이 있을 때 예약 저장 순서로 처리합니다. 예약 시간이 있어도 체크인을 함께 저장하므로 `visitTime`은 필수입니다. 예약은 `reservationStatus=true`인 방문 목적에만 가능하며, 예약 슬롯 충돌 등으로 실패하면 이번 요청의 회원 생성·체크인도 함께 롤백됩니다.
+회원 생성 → 체크인 기록 저장 → `reservationTime`이 있을 때 예약 저장 순서로 처리합니다. 예약 시간이 있어도 체크인을 함께 저장하므로 `visitTime`은 필수입니다. 예약은 `reservationStatus=RESERVATION`인 방문 목적에만 가능하며, 예약 슬롯 충돌 등으로 실패하면 이번 요청의 회원 생성·체크인도 함께 롤백됩니다.
 
 **Response (201 Created)**: 본문 없음
 
@@ -810,13 +810,15 @@ Body: Excel 파일 (byte[])
 **Request Body**
 ```json
 {
-  "purpose": "string"
+  "purpose": "string",
+  "reservationStatus": "RESERVATION|NONE|SUB_INCLUDE"
 }
 ```
 
 | 필드 | 타입 | 필수 | 설명 |
 |------|------|------|------|
 | purpose | string | O | 방문목적 (1~30자) |
+| reservationStatus | string | O | 예약 상태 (`RESERVATION`: 예약 필요, `NONE`: 예약 불필요, `SUB_INCLUDE`: 하위 방문 목적 있음) |
 
 **Response (201 Created)**
 ```
@@ -853,13 +855,15 @@ Body: Excel 파일 (byte[])
 **Request Body**
 ```json
 {
-  "purpose": "string"
+  "purpose": "string",
+  "reservationStatus": "RESERVATION|NONE|SUB_INCLUDE"
 }
 ```
 
 | 필드 | 타입 | 필수 | 설명 |
 |------|------|------|------|
 | purpose | string | O | 방문목적 (1~30자) |
+| reservationStatus | string | O | 예약 상태 (`RESERVATION`: 예약 필요, `NONE`: 예약 불필요, `SUB_INCLUDE`: 하위 방문 목적 있음) |
 
 **Response (200 OK)**
 ```
@@ -926,7 +930,8 @@ Body: Excel 파일 (byte[])
 ```json
 {
   "id": 1,
-  "purpose": "string"
+  "purpose": "string",
+  "reservationStatus": "NONE"
 }
 ```
 
@@ -951,11 +956,13 @@ Body: Excel 파일 (byte[])
 [
   {
     "id": 1,
-    "purpose": "string"
+    "purpose": "string",
+    "reservationStatus": "RESERVATION"
   },
   {
     "id": 2,
-    "purpose": "string"
+    "purpose": "string",
+    "reservationStatus": "NONE"
   }
 ]
 ```
@@ -1108,7 +1115,7 @@ Body: Excel 파일 (byte[])
 }
 ```
 
-- `reservationStatus=true`인 목적에만 예약할 수 있습니다. 기존 방문 목적의 기본값은 `false`이며 `/purpose` 생성·수정 요청에 선택적으로 `reservationStatus`를 보낼 수 있습니다. 기존 방문 목적 목록 응답에 예약 여부를 추가하지는 않습니다.
+- `reservationStatus=RESERVATION`인 목적에만 예약할 수 있습니다. 값은 `RESERVATION`(예약 필요), `NONE`(예약 불필요), `SUB_INCLUDE`(하위 방문 목적 있음, 추후 기능용)이며 기존 방문 목적의 기본값은 `NONE`입니다. `/purpose` 생성·수정 요청에 `reservationStatus`는 필수이고, 방문 목적 조회 응답에도 포함됩니다.
 - 예약 날짜는 요청 당일로 저장합니다. 선택 가능한 시작 시각은 09:30~20:30이며, 같은 회원의 여러 예약은 허용하되 같은 시설·날짜·시각에는 한 건만 저장됩니다. 중복 슬롯은 HTTP 409를 반환합니다. 지난 시각인지 서버에서 별도로 검사하지 않습니다.
 - 기존 회원은 이 요청으로 예약만 생성합니다. 체크인 기록이나 방문 횟수는 변경하지 않습니다. 일반 목적의 기존 회원은 기존 `POST /user/check-in`을 사용합니다.
 - `phone`이 null이거나 빈 값이면 이름만으로, 번호가 있으면 이름을 비교하지 않고 전화번호만으로 구즉 회원을 단건 조회합니다. 전화번호는 입력값과 DB 값 모두 하이픈을 제거하여 대조합니다. 앞 단계에서 회원을 확인한 요청을 전제로 하며, 예약 서비스에서 회원 존재 여부를 재검사하지 않습니다. 동일 조건의 회원이 여러 명이면 JPA 단건 조회 오류가 발생합니다.
