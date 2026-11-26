@@ -24,7 +24,7 @@ public class CreateSubPurposeService {
     public void execute(Long organId, SubPurposeRequest request) {
         Organ organ = organFacade.getOrganById(organId);
 
-        Purpose purpose = purposeRepository.findByOrganIdAndPurposeName(organId, request.purpose())
+        Purpose purpose = purposeRepository.findWithLockByOrganIdAndPurposeName(organId, request.purpose())
                 .orElseGet(() -> createPurpose(organ, request.purpose()));
 
         purpose.changeToSubInclude();

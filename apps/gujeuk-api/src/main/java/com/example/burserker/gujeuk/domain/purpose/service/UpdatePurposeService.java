@@ -23,7 +23,7 @@ public class UpdatePurposeService {
     public void execute(Long organId, Long id, PurposeRequest purposeRequest) {
         organFacade.getOrganById(organId);
 
-        Purpose purpose = purposeFacade.getPurposeByIdAndOrganId(id, organId);
+        Purpose purpose = purposeFacade.getPurposeWithLock(id, organId);
 
         boolean hasSubPurpose = subPurposeRepository.existsByPurposeId(purpose.getId());
         boolean requestSubInclude = purposeRequest.reservationStatus() == ReservationStatus.SUB_INCLUDE;
