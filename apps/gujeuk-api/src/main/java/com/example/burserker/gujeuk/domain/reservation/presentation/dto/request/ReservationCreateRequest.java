@@ -24,8 +24,13 @@ public record ReservationCreateRequest(
         @Min(value = 0, message = "동행인 수는 0 이상이어야 합니다.")
         Integer femaleCount,
 
-        @NotBlank(message = "예약할 방문 목적을 선택해주세요.")
+        // 기존 화면 호환용 방문목적 이름. purposeId·subPurposeId가 있으면 무시한다.
         String purpose,
+
+        Long purposeId,
+
+        // 하위 방문목적 단위 예약일 때만 보낸다
+        Long subPurposeId,
 
         @NotNull(message = "예약할 시간을 선택해주세요.")
         ReservationTime startTime

@@ -20,7 +20,8 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "purpose_reservation", uniqueConstraints = @UniqueConstraint(
-        name = "uk_reservation_slot", columnNames = {"purpose_id", "reservation_date", "start_time"}))
+        name = "uk_reservation_slot",
+        columnNames = {"purpose_id", "slot_sub_purpose_id", "reservation_date", "start_time"}))
 @Getter
 @Builder
 @NoArgsConstructor
@@ -30,6 +31,15 @@ public class PurposeReservation extends BaseIdEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "purpose_id", nullable = false)
     private Purpose purpose;
+
+    // 하위 방문목적 단위 예약이면 채운다. 상위 방문목적 단위 예약이면 null이다.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sub_purpose_id")
+    private SubPurpose subPurpose;
+
+    // DB 생성 컬럼: IFNULL(sub_purpose_id, 0). 슬롯 중복 판별에만 쓰며 직접 쓰지 않는다.
+    @Column(name = "slot_sub_purpose_id", insertable = false, updatable = false)
+    private Long slotSubPurposeId;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)

@@ -7,7 +7,10 @@ import java.time.LocalTime;
 
 public record ReservationResponse (
     Long id,
+    Long purposeId,
     String purpose,
+    Long subPurposeId,
+    String subPurpose,
     String name,
     int maleCount,
     int femaleCount,
@@ -22,7 +25,10 @@ public record ReservationResponse (
 
         return new ReservationResponse(
                 reservation.getId(),
+                reservation.getPurpose().getId(),
                 reservation.getPurpose().getPurposeName(),
+                reservation.getSubPurpose() == null ? null : reservation.getSubPurpose().getId(),
+                reservation.getSubPurpose() == null ? null : reservation.getSubPurpose().getSubPurposeName(),
                 reservation.getName(),
                 reservation.getMaleCount(),
                 reservation.getFemaleCount(),

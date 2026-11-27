@@ -26,8 +26,12 @@ public class UserReservationController {
     private final QueryAvailableReservationTimeListService queryAvailableReservationTimeListService;
 
     @GetMapping
-    public AvailableReservationTimeListResponse queryAvailableReservationTimeList(@RequestParam("purpose") String purpose) {
-        return queryAvailableReservationTimeListService.execute(purpose);
+    public AvailableReservationTimeListResponse queryAvailableReservationTimeList(
+            @RequestParam(value = "purpose", required = false) String purpose,
+            @RequestParam(value = "purposeId", required = false) Long purposeId,
+            @RequestParam(value = "subPurposeId", required = false) Long subPurposeId
+    ) {
+        return queryAvailableReservationTimeListService.execute(purpose, purposeId, subPurposeId);
     }
 
     @GetMapping("/purpose")

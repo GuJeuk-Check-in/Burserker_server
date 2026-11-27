@@ -1,11 +1,9 @@
 package com.example.burserker.gujeuk.domain.user.service;
 
-import com.example.burserker.gujeuk.domain.purpose.domain.Purpose;
+import com.example.burserker.gujeuk.domain.purpose.domain.ReservationTarget;
 import com.example.burserker.gujeuk.domain.purpose.domain.enums.ReservationTime;
-import com.example.burserker.gujeuk.domain.purpose.domain.repository.PurposeRepository;
 import com.example.burserker.gujeuk.domain.purpose.domain.repository.PurposeReservationRepository;
-import com.example.burserker.gujeuk.domain.purpose.exception.PurposeNotFoundException;
-import com.example.burserker.gujeuk.domain.purpose.exception.ReservationNotAllowedException;
+import com.example.burserker.gujeuk.domain.purpose.facade.ReservationTargetFacade;
 import com.example.burserker.gujeuk.domain.user.presentation.dto.response.AvailableReservationTimeListResponse;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -19,21 +17,17 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class QueryAvailableReservationTimeListService {
     private static final Long GUJEUK_ORGAN_ID = 1L;
-    private final PurposeRepository purposeRepository;
+    private final ReservationTargetFacade reservationTargetFacade;
     private final PurposeReservationRepository reservationRepository;
 
     @Transactional(readOnly = true)
-    public AvailableReservationTimeListResponse execute(String purposeName) {
-        Purpose purpose = purposeRepository.findByOrganIdAndPurposeName(GUJEUK_ORGAN_ID, purposeName.trim())
-                .orElseThrow(() -> PurposeNotFoundException.EXCEPTION);
-
-        if (!purpose.isReservable()) {
-            throw ReservationNotAllowedException.EXCEPTION;
-        }
+    public AvailableReservationTimeListResponse execute(String purposeName, Long purposeId, Long subPurposeId) {
+        ReservationTarget target = reservationTargetFacade.getReservableTarget(
+                GUJEUK_ORGAN_ID, purposeName, purposeId, subPurposeId);
 
         EnumSet<ReservationTime> availableTimes = EnumSet.allOf(ReservationTime.class);
         availableTimes.removeAll(reservationRepository.findReservedTimes(
-                purpose.getId(), LocalDate.now(ZoneId.of("Asia/Seoul"))));
+                target.purpose().getId(), target.slotSubPurposeId(), LocalDate.now(ZoneId.of("Asia/Seoul"))));
 
         return new AvailableReservationTimeListResponse(List.copyOf(availableTimes));
     }

@@ -1,9 +1,11 @@
 package com.example.burserker.gujeuk.domain.reservation.service;
 
-import com.example.burserker.gujeuk.domain.purpose.domain.repository.PurposeRepository;
-import com.example.burserker.gujeuk.domain.purpose.domain.repository.PurposeReservationRepository;
+import com.example.burserker.gujeuk.domain.purpose.domain.ReservationTarget;
 import com.example.burserker.gujeuk.domain.purpose.domain.enums.ReservationStatus;
 import com.example.burserker.gujeuk.domain.purpose.domain.enums.ReservationTime;
+import com.example.burserker.gujeuk.domain.purpose.domain.repository.PurposeReservationRepository;
+import com.example.burserker.gujeuk.domain.purpose.facade.ReservationTargetFacade;
+import com.example.burserker.gujeuk.domain.reservation.presentation.dto.response.ReservationFacilityResponse;
 import com.example.burserker.gujeuk.domain.reservation.presentation.dto.response.ReservationResponse;
 import com.example.burserker.gujeuk.domain.reservation.presentation.dto.response.ReservationStatusResponse;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +25,7 @@ import java.util.Optional;
 public class QueryReservationStatusService {
 
     private final PurposeReservationRepository purposeReservationRepository;
-    private final PurposeRepository purposeRepository;
+    private final ReservationTargetFacade reservationTargetFacade;
 
     @Transactional(readOnly = true)
     public ReservationStatusResponse execute(Long organId) {
@@ -38,6 +40,11 @@ public class QueryReservationStatusService {
                 .map(ReservationResponse::from)
                 .toList();
 
+        // 예약 가능 단위: RESERVATION 상위 + SUB_INCLUDE 상위의 예약 가능 하위
+        List<ReservationTarget> targets = reservationTargetFacade.getReservableTargets(organId);
+        List<ReservationFacilityResponse> facilities = targets.stream()
+                .map(ReservationFacilityResponse::from)
+                .toList();
 
         Optional<ReservationTime> currentSlot = findCurrentSlot(now);
 
@@ -46,17 +53,13 @@ public class QueryReservationStatusService {
                         .countByPurposeOrganIdAndReservationDateAndStartTime(organId, today, slot))
                 .orElse(0);
 
-
-        int reservedRequiredCount = currentSlot
-                .map(slot -> purposeReservationRepository
-                        .countByPurposeOrganIdAndReservationDateAndStartTimeAndPurposeReservationStatus(
-                                organId, today, slot, ReservationStatus.RESERVATION))
+        int reservedTargetCount = currentSlot
+                .map(slot -> purposeReservationRepository.countReservableUnitReservations(
+                        organId, today, slot, ReservationStatus.RESERVATION, ReservationStatus.SUB_INCLUDE))
                 .orElse(0);
 
-        int requiredCount = purposeRepository.countByOrganIdAndReservationStatus(
-                organId, ReservationStatus.RESERVATION);
-
-        return new ReservationStatusResponse(inUseCount, requiredCount - reservedRequiredCount, reservations);
+        return new ReservationStatusResponse(
+                inUseCount, targets.size() - reservedTargetCount, facilities, reservations);
     }
 
     private Optional<ReservationTime> findCurrentSlot(LocalTime now) {

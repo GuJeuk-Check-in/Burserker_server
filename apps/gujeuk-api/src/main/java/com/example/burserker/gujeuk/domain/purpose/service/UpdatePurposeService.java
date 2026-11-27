@@ -2,6 +2,7 @@ package com.example.burserker.gujeuk.domain.purpose.service;
 
 import com.example.burserker.gujeuk.domain.organ.facade.OrganFacade;
 import com.example.burserker.gujeuk.domain.purpose.domain.enums.ReservationStatus;
+import com.example.burserker.gujeuk.domain.purpose.domain.repository.PurposeReservationRepository;
 import com.example.burserker.gujeuk.domain.purpose.domain.repository.SubPurposeRepository;
 import com.example.burserker.gujeuk.domain.purpose.exception.PurposeStatusFixedException;
 import com.example.burserker.gujeuk.domain.purpose.exception.SubIncludeNotAllowedException;
@@ -12,12 +13,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+
 @Service
 @RequiredArgsConstructor
 public class UpdatePurposeService {
     private final PurposeFacade purposeFacade;
     private final OrganFacade organFacade;
     private final SubPurposeRepository subPurposeRepository;
+    private final PurposeReservationRepository purposeReservationRepository;
 
     @Transactional
     public void execute(Long organId, Long id, PurposeRequest purposeRequest) {
@@ -35,6 +40,12 @@ public class UpdatePurposeService {
 
         if (!hasSubPurpose && requestSubInclude) {
             throw SubIncludeNotAllowedException.EXCEPTION;
+        }
+
+        // RESERVATION → NONE: 예약할 수 없게 되므로 오늘 이후 상위 단위 예약을 정리한다
+        if (purpose.isReservable() && purposeRequest.reservationStatus() != ReservationStatus.RESERVATION) {
+            purposeReservationRepository.deletePurposeUnitReservationsFrom(
+                    purpose.getId(), LocalDate.now(ZoneId.of("Asia/Seoul")));
         }
 
         purpose.updatePurpose(purposeRequest.purpose(), purposeRequest.reservationStatus());

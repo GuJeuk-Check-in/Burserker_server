@@ -7,8 +7,13 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public record PurposeReservationCreateRequest(
-    @NotBlank(message = "예약할 방문 목적을 선택해주세요.")
+    // 기존 앱 호환용 방문목적 이름. purposeId·subPurposeId가 있으면 무시한다.
     String purpose,
+
+    Long purposeId,
+
+    // 하위 방문목적 단위 예약일 때만 보낸다
+    Long subPurposeId,
 
     @NotBlank(message = "예약인의 이름을 입력해주세요.")
     @Size(max = 30, message = "이름은 30자 이하로 입력해주세요.")
