@@ -75,7 +75,7 @@ cd ~/gujeuk-aws/prod
 docker compose --env-file .env pull
 docker compose --env-file .env up -d
 docker compose --env-file .env ps
-curl -i http://localhost:8080/purpose/all
+curl -i http://localhost:8080/common/health/ready
 ```
 
 ## 6. Start Stag
@@ -85,7 +85,7 @@ cd ~/gujeuk-aws/stag
 docker compose --env-file .env pull
 docker compose --env-file .env up -d
 docker compose --env-file .env ps
-curl -i http://localhost:8081/purpose/all
+curl -i http://localhost:8081/common/health/ready
 ```
 
 ## 7. Cloudflare DNS
@@ -114,8 +114,8 @@ Proxy status: Proxied
 Then verify:
 
 ```bash
-curl -i https://aws-api.oijwef098234.com/purpose/all
-curl -i https://aws-stag.oijwef098234.com/purpose/all
+curl -i https://aws-api.oijwef098234.com/common/health/ready
+curl -i https://aws-stag.oijwef098234.com/common/health/ready
 ```
 
 If Cloudflare returns 521/522, check EC2 security group and host firewall.

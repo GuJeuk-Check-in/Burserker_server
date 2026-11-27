@@ -132,11 +132,11 @@ jobs:
           if [ "${{ needs.package-image.outputs.deploy_target }}" = "prod" ]; then
             echo "remote_dir=/home/ubuntu/gujeuk-aws/prod" >> "$GITHUB_OUTPUT"
             echo "local_port=8080" >> "$GITHUB_OUTPUT"
-            echo "public_health_url=https://aws-api.oijwef098234.com/purpose/all" >> "$GITHUB_OUTPUT"
+            echo "public_health_url=https://aws-api.oijwef098234.com/common/health/ready" >> "$GITHUB_OUTPUT"
           else
             echo "remote_dir=/home/ubuntu/gujeuk-aws/stag" >> "$GITHUB_OUTPUT"
             echo "local_port=8081" >> "$GITHUB_OUTPUT"
-            echo "public_health_url=https://aws-stag.oijwef098234.com/purpose/all" >> "$GITHUB_OUTPUT"
+            echo "public_health_url=https://aws-stag.oijwef098234.com/common/health/ready" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Copy docker-compose file to EC2
@@ -189,7 +189,7 @@ jobs:
             # Flyway 마이그레이션과 JPA 초기화까지 포함해 기동에 70~80초가 걸린다.
             # 기존 30초(10회x3s)로는 앱이 정상인데도 실패로 판정됐다. 120초까지 기다린다.
             for i in $(seq 1 40); do
-              if curl -fs "http://localhost:${LOCAL_PORT}/purpose/all" >/dev/null; then
+              if curl -fs "http://localhost:${LOCAL_PORT}/common/health/ready" >/dev/null; then
                 echo "local health check OK (${i}번째 시도, 약 $((i * 3))초)"
                 break
               fi

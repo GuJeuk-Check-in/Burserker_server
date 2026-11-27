@@ -108,15 +108,15 @@
 | PR | Java 컴파일 | Java 컴파일 |
 | develop/main push | JAR·이미지 빌드 → GHCR → stag/prod | JAR·이미지 빌드 → GHCR → 공용 Caddy 적용 → stag/prod 앱 배포 |
 | 수동 실행 | 빌드, 배포 없음 | 빌드, 배포 없음 |
-| 내부 기동 확인 | 공개 `/purpose/all` | `/purpose` 200 + 컨테이너 실행 + Hikari/Spring 기동 로그 + Redis PING |
-| 외부 HTTPS 확인 | 공개 도메인의 `/purpose/all` 200 | 현재 workflow에 없음 |
+| 내부 기동 확인 | 공개 `/common/health/ready` 200 (DB 연결 확인) | `/purpose` 200 + 컨테이너 실행 + Hikari/Spring 기동 로그 + Redis PING |
+| 외부 HTTPS 확인 | 공개 도메인의 `/common/health/ready` 200 | 현재 workflow에 없음 |
 
 - workflow의 경로 필터에 따라 기관별 실행 여부가 결정됩니다. 공통 빌드·모듈 변경은 두 workflow에 영향을 줄 수 있습니다.
 - Caddyfile만 main/develop에 push해도 기존 구즉·법동 CI/CD가 실행되며 앱 이미지도 다시 빌드·배포합니다. PR은 컴파일만, 수동 실행은 빌드만 수행하고 서버에 배포하지 않습니다.
 - 법동 deploy job은 Compose와 Caddyfile을 함께 전송하고 기존 EC2 배포 잠금 안에서 Caddy 검증 → 파일 백업·덮어쓰기 → reload → 기존 앱 배포 순서로 실행합니다. reload 실패 시 기존 파일·설정으로 복구하고 중단합니다. main/develop이 하나의 Caddy를 공유하므로 전체 도메인 매핑을 두 브랜치에서 일관되게 관리해야 합니다.
 - 법동은 루트 HTTP 응답 검사를 하지 않습니다. 별도 헬스체크 컨트롤러·정적 기본 페이지·루트 공개 설정은 추가하지 않습니다.
 - 법동 배포는 DB 계정 SELECT, 컨테이너 실행 여부, 현재 실행 이후 Hikari/Spring 기동 로그, 호스트 앱 포트의 `/purpose` 200, 앱에서 Redis PING으로 확인합니다. 외부 HTTPS는 검사 범위 밖입니다.
-- 구즉에는 DB 연결 유효성을 검사하는 공개 `/common/health/ready`도 있지만 현재 CI/CD 검사 경로는 `/purpose/all`입니다.
+- 구즉 CI/CD 검사 경로는 DB 연결 유효성을 검사하는 공개 `/common/health/ready`입니다. DB가 끊기면 503을 돌려줘 배포가 실패로 판정됩니다.
 - env·이미지·서비스 이름 검증을 유지하고 전체 `down`, `--remove-orphans`, 볼륨 삭제를 배포에 추가하지 않습니다.
 
 ## 6. 주소·프록시·관측
