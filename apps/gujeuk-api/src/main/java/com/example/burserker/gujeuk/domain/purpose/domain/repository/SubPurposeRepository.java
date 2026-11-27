@@ -30,8 +30,7 @@ public interface SubPurposeRepository extends JpaRepository<SubPurpose, Long> {
     @Query("select coalesce(max(s.subPurposeIndex), 0) from SubPurpose s where s.purpose.id = :purposeId")
     int findMaxSubPurposeIndexByPurposeId(@Param("purposeId") Long purposeId);
 
-    @Query("select s.purpose.id from SubPurpose s where s.id = :id and s.purpose.organ.id = :organId")
-    Optional<Long> findPurposeIdByIdAndOrganId(@Param("id") Long id, @Param("organId") Long organId);
-
-    List<SubPurpose> findAllByPurposeIdAndSubPurposeIndexGreaterThan(Long purposeId, int subPurposeIndex);
+    // 잠금 읽기로 같은 상위 방문목적의 하위 방문목적 전체를 최신 커밋 상태로 조회한다
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    List<SubPurpose> findAllWithLockByPurposeId(Long purposeId);
 }
