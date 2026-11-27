@@ -3,7 +3,7 @@ package com.example.burserker.gujeuk.domain.purpose.presentation;
 import com.example.burserker.gujeuk.domain.purpose.presentation.dto.request.PurposeRequest;
 import com.example.burserker.gujeuk.domain.purpose.presentation.dto.request.SubPurposeRequest;
 import com.example.burserker.gujeuk.domain.purpose.presentation.dto.request.SubPurposeUpdateRequest;
-import com.example.burserker.gujeuk.domain.purpose.presentation.dto.response.PurposeResponse;
+import com.example.burserker.gujeuk.domain.purpose.presentation.dto.response.PurposeWithSubListResponse;
 import com.example.burserker.gujeuk.domain.purpose.presentation.dto.request.PurposeMoveRequest;
 import com.example.burserker.gujeuk.domain.purpose.service.*;
 import com.example.burserker.gujeuk.global.security.auth.CustomUserDetails;
@@ -13,8 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/purpose")
@@ -22,11 +20,11 @@ public class PurposeController {
     private final CreatePurposeService createPurposeService;
     private final UpdatePurposeService updatePurposeService;
     private final DeletePurposeService deletePurposeService;
-    private final QueryPurposeListService queryPurposeListService;
     private final MovePurposeService movePurposeService;
     private final CreateSubPurposeService createSubPurposeService;
     private final DeleteSubPurposeService deleteSubPurposeService;
     private final UpdateSubPurposeService updateSubPurposeService;
+    private final QueryPurposeWithSubListService queryPurposeWithSubListService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -81,8 +79,8 @@ public class PurposeController {
     }
 
     @GetMapping("/all")
-    public List<PurposeResponse> queryAllPurpose() {
-        return queryPurposeListService.execute();
+    public PurposeWithSubListResponse queryAllPurpose() {
+        return queryPurposeWithSubListService.execute();
     }
 
     @PatchMapping("/move")

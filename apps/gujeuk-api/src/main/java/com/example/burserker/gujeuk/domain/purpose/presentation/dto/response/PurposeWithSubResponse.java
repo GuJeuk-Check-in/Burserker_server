@@ -4,17 +4,21 @@ import com.example.burserker.gujeuk.domain.purpose.domain.Purpose;
 import com.example.burserker.gujeuk.domain.purpose.domain.enums.ReservationStatus;
 import lombok.Builder;
 
+import java.util.List;
+
 @Builder
-public record PurposeResponse(
-        Long id,
+public record PurposeWithSubResponse(
+        Long purposeId,
         String purpose,
-        ReservationStatus reservationStatus
+        ReservationStatus reservationStatus,
+        List<SubPurposeResponse> subPurposes
 ) {
-    public static PurposeResponse from(Purpose purpose) {
-        return PurposeResponse.builder()
-                .id(purpose.getId())
+    public static PurposeWithSubResponse of(Purpose purpose, List<SubPurposeResponse> subPurposes) {
+        return PurposeWithSubResponse.builder()
+                .purposeId(purpose.getId())
                 .purpose(purpose.getPurposeName())
                 .reservationStatus(purpose.getReservationStatus())
+                .subPurposes(subPurposes)
                 .build();
     }
 }
