@@ -24,11 +24,24 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class QueryReservationStatusService {
 
+    private static final Long GUJEUK_ORGAN_ID = 1L;
+
     private final PurposeReservationRepository purposeReservationRepository;
     private final ReservationTargetFacade reservationTargetFacade;
 
+    // 관리자 화면: 토큰의 기관 현황을 전화번호까지 보여준다
     @Transactional(readOnly = true)
     public ReservationStatusResponse execute(Long organId) {
+        return query(organId, true);
+    }
+
+    // 로그인 없는 예약 현황판: 구즉 기관 현황을 전화번호 없이 보여준다
+    @Transactional(readOnly = true)
+    public ReservationStatusResponse executeForPublicBoard() {
+        return query(GUJEUK_ORGAN_ID, false);
+    }
+
+    private ReservationStatusResponse query(Long organId, boolean includePhone) {
 
         LocalDateTime dateTime = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
         LocalDate today = dateTime.toLocalDate();
@@ -37,7 +50,7 @@ public class QueryReservationStatusService {
         List<ReservationResponse> reservations = purposeReservationRepository
                 .findAllByPurposeOrganIdAndReservationDateOrderByStartTimeAsc(organId, today)
                 .stream()
-                .map(ReservationResponse::from)
+                .map(includePhone ? ReservationResponse::from : ReservationResponse::withoutPhone)
                 .toList();
 
         // 예약 가능 단위: RESERVATION 상위 + SUB_INCLUDE 상위의 예약 가능 하위

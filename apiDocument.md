@@ -1315,9 +1315,25 @@ Body: Excel 파일 (byte[])
 
 ---
 
-## 시설 예약 현황 (관리자, 토큰 필요)
+## 시설 예약 현황
+
+| API | 토큰 필요 |
+|------|------|
+| `GET /reservation` | X (선택) |
+| `POST /reservation` | O |
+| `DELETE /reservation/{reservation-id}` | O |
 
 ### 오늘 예약 현황 `GET /reservation`
+
+예약 현황판을 상시 띄워 두는 화면에서 로그인 없이 조회할 수 있습니다.
+
+| 요청 | 조회 기관 | `reservations[].phone` |
+|------|------|------|
+| 토큰 없음 (현황판) | 구즉 기관(ID 1) 고정 | 항상 `null` |
+| 토큰 있음 (관리자 웹) | 토큰의 기관 | 대표 전화번호 |
+
+- 토큰을 보냈는데 유효하지 않으면 지금처럼 401입니다. 현황판은 `Authorization` 헤더를 보내지 않습니다.
+- 응답 형식은 두 경우 같고, 토큰이 없을 때만 `phone`이 비어 있습니다.
 
 ```json
 {
@@ -1352,6 +1368,7 @@ Body: Excel 파일 (byte[])
 | availableCount | 현재 시간대에 비어 있는 예약 단위 수 (`facilities` 수 − 현재 시간대에 예약된 단위 수) |
 | facilities | 기관의 예약 가능 단위 평탄 목록. 상위 순서(`purposeIndex`), 하위 순서(`subPurposeIndex`)대로 정렬합니다. 상위 방문목적 단위면 `subPurposeId`·`subPurpose`가 null입니다. |
 | reservations | 오늘 예약 목록(시작 시각 오름차순). `purpose`는 상위 방문목적 이름이며, 하위 방문목적 단위 예약이면 `subPurposeId`·`subPurpose`가 채워집니다. |
+| reservations[].phone | 예약자 대표 전화번호. 토큰 없이 조회하면 `null` |
 
 - 예약과 시설은 이름이 아니라 `(purposeId, subPurposeId)` 쌍으로 연결합니다.
 

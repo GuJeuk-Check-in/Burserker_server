@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -67,6 +68,8 @@ public class SecurityConfig {
                                 "/user/ha-log", "/user/ha-sign-up",
                                 "/common/health/ready"
                         ).permitAll()
+                        // 예약 현황판은 로그인 없이 조회한다. 예약 생성·삭제는 토큰이 필요하다.
+                        .requestMatchers(HttpMethod.GET, "/reservation").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exceptionHandling -> exceptionHandling

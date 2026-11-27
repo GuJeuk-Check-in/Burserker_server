@@ -21,6 +21,15 @@ public record ReservationResponse (
 
 ){
     public static ReservationResponse from(PurposeReservation reservation){
+        return of(reservation, true);
+    }
+
+    // 로그인 없는 현황판 응답. 예약자 전화번호를 내보내지 않는다.
+    public static ReservationResponse withoutPhone(PurposeReservation reservation){
+        return of(reservation, false);
+    }
+
+    private static ReservationResponse of(PurposeReservation reservation, boolean includePhone){
         LocalTime startTime = reservation.getStartTime().getTime();
 
         return new ReservationResponse(
@@ -32,7 +41,7 @@ public record ReservationResponse (
                 reservation.getName(),
                 reservation.getMaleCount(),
                 reservation.getFemaleCount(),
-                reservation.getRepresentativePhone(),
+                includePhone ? reservation.getRepresentativePhone() : null,
                 startTime,
                 startTime.plusHours(1)
         );
