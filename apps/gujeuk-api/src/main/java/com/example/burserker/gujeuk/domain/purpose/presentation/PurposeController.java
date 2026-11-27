@@ -2,6 +2,7 @@ package com.example.burserker.gujeuk.domain.purpose.presentation;
 
 import com.example.burserker.gujeuk.domain.purpose.presentation.dto.request.PurposeRequest;
 import com.example.burserker.gujeuk.domain.purpose.presentation.dto.request.SubPurposeRequest;
+import com.example.burserker.gujeuk.domain.purpose.presentation.dto.request.SubPurposeUpdateRequest;
 import com.example.burserker.gujeuk.domain.purpose.presentation.dto.response.PurposeResponse;
 import com.example.burserker.gujeuk.domain.purpose.presentation.dto.request.PurposeMoveRequest;
 import com.example.burserker.gujeuk.domain.purpose.service.*;
@@ -25,6 +26,7 @@ public class PurposeController {
     private final MovePurposeService movePurposeService;
     private final CreateSubPurposeService createSubPurposeService;
     private final DeleteSubPurposeService deleteSubPurposeService;
+    private final UpdateSubPurposeService updateSubPurposeService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -51,6 +53,15 @@ public class PurposeController {
             @RequestBody @Valid PurposeRequest purposeRequest
     ) {
         updatePurposeService.execute(userDetails.organ().getId(), id, purposeRequest);
+    }
+
+    @PatchMapping("/sub/{id}")
+    public void updateSubPurpose(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long id,
+            @RequestBody @Valid SubPurposeUpdateRequest request
+    ) {
+        updateSubPurposeService.execute(userDetails.organ().getId(), id, request);
     }
 
     @DeleteMapping("/{id}")

@@ -39,6 +39,11 @@ public class SubPurpose extends BaseIdEntity {
         return this.reservationStatus;
     }
 
+    public void updateSubPurpose(String subPurposeName, boolean reservationStatus) {
+        this.subPurposeName = subPurposeName;
+        this.reservationStatus = reservationStatus;
+    }
+
     public void updateSubPurposeIndex(int subPurposeIndex) {
         this.subPurposeIndex = subPurposeIndex;
     }
