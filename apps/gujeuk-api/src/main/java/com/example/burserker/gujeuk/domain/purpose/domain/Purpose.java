@@ -43,4 +43,8 @@ public class Purpose extends BaseIdEntity {
     public void changeToSubInclude() {
         this.reservationStatus = ReservationStatus.SUB_INCLUDE;
     }
+
+    public void changeToNone() {
+        this.reservationStatus = ReservationStatus.NONE;
+    }
 }

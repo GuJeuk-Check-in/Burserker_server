@@ -38,4 +38,8 @@ public class SubPurpose extends BaseIdEntity {
     public boolean isReservable() {
         return this.reservationStatus;
     }
+
+    public void updateSubPurposeIndex(int subPurposeIndex) {
+        this.subPurposeIndex = subPurposeIndex;
+    }
 }
