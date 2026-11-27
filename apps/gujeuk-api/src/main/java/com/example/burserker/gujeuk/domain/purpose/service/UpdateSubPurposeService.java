@@ -21,19 +21,20 @@ public class UpdateSubPurposeService {
 
     @Transactional
     public void execute(Long organId, Long subPurposeId, SubPurposeUpdateRequest request) {
-        // 잠금 조회를 첫 쿼리로 두어, 이후 일반 조회(중복 검사)가 잠금 획득 뒤의 스냅샷을 보도록 한다.
+        // 상위 방문목적을 잠가 같은 방문목적의 하위 항목 생성·수정·삭제와 직렬화한다.
         // 없는 ID이거나 다른 기관의 하위 방문목적이면 조회 결과가 비어 404가 된다.
         Purpose purpose = purposeRepository.findWithLockBySubPurposeIdAndOrganId(subPurposeId, organId)
                 .orElseThrow(() -> SubPurposeNotFoundException.EXCEPTION);
 
         organFacade.getOrganById(organId);
 
-        SubPurpose subPurpose = subPurposeRepository.findById(subPurposeId)
+        // 잠금 대기 중 다른 트랜잭션이 커밋한 변경(삭제 등)을 보기 위해 잠금 읽기로 다시 조회한다
+        SubPurpose subPurpose = subPurposeRepository.findWithLockById(subPurposeId)
                 .orElseThrow(() -> SubPurposeNotFoundException.EXCEPTION);
 
-        // 자기 자신은 제외하고, 같은 상위 방문목적 안에서만 이름 중복을 검사한다
-        if (subPurposeRepository.existsByPurposeIdAndSubPurposeNameAndIdNot(
-                purpose.getId(), request.subPurpose(), subPurposeId)) {
+        // 자기 자신은 제외하고, 같은 상위 방문목적 안에서만 이름 중복을 검사한다 (잠금 읽기로 최신 상태 확인)
+        if (subPurposeRepository.findWithLockByPurposeIdAndSubPurposeNameAndIdNot(
+                purpose.getId(), request.subPurpose(), subPurposeId).isPresent()) {
             throw SubPurposeAlreadyExistException.EXCEPTION;
         }
 
