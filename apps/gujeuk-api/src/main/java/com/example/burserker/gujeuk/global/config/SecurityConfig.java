@@ -62,6 +62,7 @@ public class SecurityConfig {
                                 "/user/**",
                                 "/organ/create",
                                 "/organ/login",
+                                "/purpose/all",
                                 "/purpose/all/with-sub",
                                 "/residence/all",
                                 "/user/ha-log", "/user/ha-sign-up",

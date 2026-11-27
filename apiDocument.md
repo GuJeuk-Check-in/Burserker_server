@@ -958,7 +958,42 @@ Body: Excel 파일 (byte[])
 
 ---
 
-### 5. 전체 방문목적 조회 (하위 포함)
+### 5. 전체 방문목적 조회 (기존 앱 호환)
+| 항목 | 내용 |
+|------|------|
+| **Domain** | Purpose |
+| **기능** | 모든 방문목적 목록 조회 |
+| **HTTP Method** | `GET` |
+| **API Path** | `/purpose/all` |
+| **토큰 필요** | X |
+
+- 관리자 웹, 체크인 웹, Flutter V1·V2가 쓰는 기존 배열 응답입니다. 모든 클라이언트가 `/purpose/all/with-sub`로 옮기면 제거합니다.
+- 하위 방문목적은 포함하지 않습니다.
+
+**Response (200 OK)**
+```json
+[
+  {
+    "id": 1,
+    "purpose": "string",
+    "reservationStatus": "RESERVATION"
+  },
+  {
+    "id": 2,
+    "purpose": "string",
+    "reservationStatus": "NONE"
+  }
+]
+```
+
+**Error List**
+<details>
+<summary><code>500</code> INTERNAL_SERVER_ERROR - 서버 내부 오류가 발생했습니다</summary>
+</details>
+
+---
+
+### 5-1. 전체 방문목적 조회 (하위 포함)
 | 항목 | 내용 |
 |------|------|
 | **Domain** | Purpose |

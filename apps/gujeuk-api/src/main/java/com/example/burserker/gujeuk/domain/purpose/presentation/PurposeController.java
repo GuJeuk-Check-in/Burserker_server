@@ -3,6 +3,7 @@ package com.example.burserker.gujeuk.domain.purpose.presentation;
 import com.example.burserker.gujeuk.domain.purpose.presentation.dto.request.PurposeRequest;
 import com.example.burserker.gujeuk.domain.purpose.presentation.dto.request.SubPurposeRequest;
 import com.example.burserker.gujeuk.domain.purpose.presentation.dto.request.SubPurposeUpdateRequest;
+import com.example.burserker.gujeuk.domain.purpose.presentation.dto.response.PurposeResponse;
 import com.example.burserker.gujeuk.domain.purpose.presentation.dto.response.PurposeWithSubListResponse;
 import com.example.burserker.gujeuk.domain.purpose.presentation.dto.request.PurposeMoveRequest;
 import com.example.burserker.gujeuk.domain.purpose.service.*;
@@ -12,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,6 +27,7 @@ public class PurposeController {
     private final CreateSubPurposeService createSubPurposeService;
     private final DeleteSubPurposeService deleteSubPurposeService;
     private final UpdateSubPurposeService updateSubPurposeService;
+    private final QueryPurposeListService queryPurposeListService;
     private final QueryPurposeWithSubListService queryPurposeWithSubListService;
 
     @PostMapping
@@ -76,6 +80,12 @@ public class PurposeController {
             @PathVariable Long id
     ) {
         deleteSubPurposeService.execute(userDetails.organ().getId(), id);
+    }
+
+    // 기존 앱(Flutter V1·V2, 체크인 웹) 호환용 배열 응답. 전환이 끝나면 제거한다.
+    @GetMapping("/all")
+    public List<PurposeResponse> queryAllPurpose() {
+        return queryPurposeListService.execute();
     }
 
     @GetMapping("/all/with-sub")
