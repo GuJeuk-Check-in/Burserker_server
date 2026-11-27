@@ -4,6 +4,7 @@ import com.example.burserker.gujeuk.domain.organ.facade.OrganFacade;
 import com.example.burserker.gujeuk.domain.purpose.domain.Purpose;
 import com.example.burserker.gujeuk.domain.purpose.domain.SubPurpose;
 import com.example.burserker.gujeuk.domain.purpose.domain.repository.PurposeRepository;
+import com.example.burserker.gujeuk.domain.purpose.domain.repository.PurposeReservationRepository;
 import com.example.burserker.gujeuk.domain.purpose.domain.repository.SubPurposeRepository;
 import com.example.burserker.gujeuk.domain.purpose.exception.SubPurposeNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ import java.util.List;
 public class DeleteSubPurposeService {
     private final PurposeRepository purposeRepository;
     private final SubPurposeRepository subPurposeRepository;
+    private final PurposeReservationRepository purposeReservationRepository;
     private final OrganFacade organFacade;
 
     @Transactional
@@ -37,6 +39,8 @@ public class DeleteSubPurposeService {
                 .orElseThrow(() -> SubPurposeNotFoundException.EXCEPTION);
         int subPurposeIndex = subPurpose.getSubPurposeIndex();
 
+        // 예약이 하위 방문목적을 FK로 참조하므로 먼저 지운다
+        purposeReservationRepository.deleteAllBySubPurposeId(subPurposeId);
         subPurposeRepository.delete(subPurpose);
 
         for (SubPurpose s : subPurposes) {

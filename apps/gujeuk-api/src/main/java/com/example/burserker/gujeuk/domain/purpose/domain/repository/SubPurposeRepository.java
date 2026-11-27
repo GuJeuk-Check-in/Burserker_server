@@ -34,6 +34,14 @@ public interface SubPurposeRepository extends JpaRepository<SubPurpose, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     List<SubPurpose> findAllWithLockByPurposeId(Long purposeId);
 
+    @Query("select s from SubPurpose s join fetch s.purpose p where s.id = :id and p.organ.id = :organId")
+    Optional<SubPurpose> findWithPurposeByIdAndOrganId(@Param("id") Long id, @Param("organId") Long organId);
+
+    // 기관의 하위 방문목적을 상위 방문목적별 순서대로 조회한다
+    @Query("select s from SubPurpose s join s.purpose p where p.organ.id = :organId "
+            + "order by p.purposeIndex asc, p.id asc, s.subPurposeIndex asc")
+    List<SubPurpose> findAllByOrganIdOrderByIndex(@Param("organId") Long organId);
+
     @Query("select s from SubPurpose s order by s.purpose.id asc, s.subPurposeIndex asc")
     List<SubPurpose> findAllOrderByPurposeIdAndSubPurposeIndex();
 }

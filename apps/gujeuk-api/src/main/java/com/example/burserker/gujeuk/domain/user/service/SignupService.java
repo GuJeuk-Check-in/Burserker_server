@@ -5,10 +5,10 @@ import com.example.burserker.gujeuk.domain.organ.domain.repository.OrganReposito
 import com.example.burserker.gujeuk.domain.log.domain.Log;
 import com.example.burserker.gujeuk.domain.log.domain.repository.LogRepository;
 import com.example.burserker.gujeuk.domain.purpose.domain.Purpose;
-import com.example.burserker.gujeuk.domain.purpose.domain.PurposeReservation;
+import com.example.burserker.gujeuk.domain.purpose.domain.ReservationTarget;
 import com.example.burserker.gujeuk.domain.purpose.domain.repository.PurposeReservationRepository;
-import com.example.burserker.gujeuk.domain.purpose.exception.ReservationNotAllowedException;
 import com.example.burserker.gujeuk.domain.purpose.facade.PurposeFacade;
+import com.example.burserker.gujeuk.domain.purpose.facade.ReservationTargetFacade;
 import com.example.burserker.gujeuk.domain.residence.domain.repository.ResidenceRepository;
 import com.example.burserker.gujeuk.domain.residence.exception.ResidenceNotFoundException;
 import com.example.burserker.gujeuk.domain.user.domain.User;
@@ -36,6 +36,7 @@ public class SignupService {
     private final ResidenceRepository residenceRepository;
     private final PurposeFacade purposeFacade;
     private final PurposeReservationRepository reservationRepository;
+    private final ReservationTargetFacade reservationTargetFacade;
 
     private static final Long HARDCODED_ORGAN_ID = 1L;
 
@@ -71,12 +72,10 @@ public class SignupService {
         logRepository.save(log);
 
         if (request.reservationTime() != null) {
-            if (!purpose.isReservable()) {
-                throw ReservationNotAllowedException.EXCEPTION;
-            }
+            ReservationTarget target = reservationTargetFacade.getReservableTarget(
+                    organ.getId(), null, purpose.getId(), request.subPurposeId());
 
-            reservationRepository.save(PurposeReservation.builder()
-                    .purpose(purpose)
+            reservationRepository.save(target.reservationBuilder()
                     .user(user)
                     .name(user.getName())
                     .representativePhone(user.getPhone())

@@ -4,6 +4,7 @@ import com.example.burserker.gujeuk.domain.organ.facade.OrganFacade;
 import com.example.burserker.gujeuk.domain.purpose.domain.Purpose;
 import com.example.burserker.gujeuk.domain.purpose.domain.SubPurpose;
 import com.example.burserker.gujeuk.domain.purpose.domain.repository.PurposeRepository;
+import com.example.burserker.gujeuk.domain.purpose.domain.repository.PurposeReservationRepository;
 import com.example.burserker.gujeuk.domain.purpose.domain.repository.SubPurposeRepository;
 import com.example.burserker.gujeuk.domain.purpose.exception.SubPurposeAlreadyExistException;
 import com.example.burserker.gujeuk.domain.purpose.exception.SubPurposeNotFoundException;
@@ -12,11 +13,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+
 @Service
 @RequiredArgsConstructor
 public class UpdateSubPurposeService {
     private final PurposeRepository purposeRepository;
     private final SubPurposeRepository subPurposeRepository;
+    private final PurposeReservationRepository purposeReservationRepository;
     private final OrganFacade organFacade;
 
     @Transactional
@@ -36,6 +41,12 @@ public class UpdateSubPurposeService {
         if (subPurposeRepository.findWithLockByPurposeIdAndSubPurposeNameAndIdNot(
                 purpose.getId(), request.subPurpose(), subPurposeId).isPresent()) {
             throw SubPurposeAlreadyExistException.EXCEPTION;
+        }
+
+        // 예약 가능 → 예약 불가: 오늘 이후 이 하위 방문목적의 예약을 정리한다
+        if (subPurpose.isReservable() && !request.subPurposeReservation()) {
+            purposeReservationRepository.deleteSubPurposeUnitReservationsFrom(
+                    subPurpose.getId(), LocalDate.now(ZoneId.of("Asia/Seoul")));
         }
 
         subPurpose.updateSubPurpose(request.subPurpose(), request.subPurposeReservation());

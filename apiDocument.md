@@ -51,8 +51,9 @@
 | purpose | string | O | 방문목적 |
 | visitTime | LocalDateTime | O | 기존 회원가입 처리에 필요한 방문시각 |
 | reservationTime | string | X | 함께 예약할 시작 시각 (`HH:mm`, 09:30~20:30). 없으면 예약을 생성하지 않습니다. |
+| subPurposeId | long | X | 하위 방문목적 단위로 예약할 때 하위 방문목적 ID. `purpose`의 하위여야 합니다. |
 
-회원 생성 → 체크인 기록 저장 → `reservationTime`이 있을 때 예약 저장 순서로 처리합니다. 예약 시간이 있어도 체크인을 함께 저장하므로 `visitTime`은 필수입니다. 예약은 `reservationStatus=RESERVATION`인 방문 목적에만 가능하며, 예약 슬롯 충돌 등으로 실패하면 이번 요청의 회원 생성·체크인도 함께 롤백됩니다.
+회원 생성 → 체크인 기록 저장 → `reservationTime`이 있을 때 예약 저장 순서로 처리합니다. 예약 시간이 있어도 체크인을 함께 저장하므로 `visitTime`은 필수입니다. 예약은 `reservationStatus=RESERVATION`인 방문 목적, 또는 `SUB_INCLUDE` 방문 목적의 `subPurposeReservation=true`인 하위 방문목적(`subPurposeId`)에만 가능하며, 예약 슬롯 충돌 등으로 실패하면 이번 요청의 회원 생성·체크인도 함께 롤백됩니다.
 
 **Response (201 Created)**: 본문 없음
 
@@ -870,6 +871,7 @@ Body: Excel 파일 (byte[])
 
 - 하위 방문목적이 있는 방문목적은 `reservationStatus`를 `SUB_INCLUDE`로만 보낼 수 있습니다 (이름만 수정 가능).
 - 하위 방문목적이 없는 방문목적은 `SUB_INCLUDE`로 바꿀 수 없습니다. `SUB_INCLUDE`는 하위 방문목적 생성(`POST /purpose/sub`)에서만 설정됩니다.
+- `RESERVATION`에서 다른 상태로 바꾸면 그 방문목적의 오늘 이후 예약을 삭제합니다. 지난 예약은 남깁니다.
 
 **Response (200 OK)**
 ```
@@ -956,13 +958,48 @@ Body: Excel 파일 (byte[])
 
 ---
 
-### 5. 전체 방문목적 조회
+### 5. 전체 방문목적 조회 (기존 앱 호환)
+| 항목 | 내용 |
+|------|------|
+| **Domain** | Purpose |
+| **기능** | 모든 방문목적 목록 조회 |
+| **HTTP Method** | `GET` |
+| **API Path** | `/purpose/all` |
+| **토큰 필요** | X |
+
+- 관리자 웹, 체크인 웹, Flutter V1·V2가 쓰는 기존 배열 응답입니다. 모든 클라이언트가 `/purpose/all/with-sub`로 옮기면 제거합니다.
+- 하위 방문목적은 포함하지 않습니다.
+
+**Response (200 OK)**
+```json
+[
+  {
+    "id": 1,
+    "purpose": "string",
+    "reservationStatus": "RESERVATION"
+  },
+  {
+    "id": 2,
+    "purpose": "string",
+    "reservationStatus": "NONE"
+  }
+]
+```
+
+**Error List**
+<details>
+<summary><code>500</code> INTERNAL_SERVER_ERROR - 서버 내부 오류가 발생했습니다</summary>
+</details>
+
+---
+
+### 5-1. 전체 방문목적 조회 (하위 포함)
 | 항목 | 내용 |
 |------|------|
 | **Domain** | Purpose |
 | **기능** | 모든 방문목적 목록과 각 방문목적의 하위 방문목적 목록 조회 |
 | **HTTP Method** | `GET` |
-| **API Path** | `/purpose/all` |
+| **API Path** | `/purpose/all/with-sub` |
 | **토큰 필요** | X |
 
 - 등록된 모든 기관의 방문목적을 돌려준다. 기관별로 걸러지지 않는다.
@@ -1083,6 +1120,7 @@ Body: Excel 파일 (byte[])
 
 - `purpose`가 기관에 없으면 방문목적을 새로 만들고, 그 아래에 하위 방문목적을 만듭니다. 새 방문목적의 정렬 순서는 방문목적 목록의 맨 뒤로 자동 부여됩니다.
 - 이미 있는 방문목적이면 `reservationStatus`를 `SUB_INCLUDE`로 바꾸고 그 아래에 하위 방문목적을 만듭니다.
+- `RESERVATION`이던 방문목적이 `SUB_INCLUDE`로 바뀌면 상위 방문목적 단위의 오늘 이후 예약을 삭제합니다. 이후에는 하위 방문목적 단위로 예약합니다.
 - 하위 방문목적이 하나라도 있는 방문목적의 `reservationStatus`는 `SUB_INCLUDE`로 고정됩니다.
 - 같은 방문목적 안에서 하위 방문목적 이름은 중복될 수 없습니다. 다른 방문목적에는 같은 이름이 있어도 됩니다.
 - 하위 방문목적의 정렬 순서는 해당 방문목적의 하위 목록 맨 뒤로 자동 부여됩니다.
@@ -1203,13 +1241,54 @@ Body: Excel 파일 (byte[])
 
 먼저 `POST /user`에 `{"name":"김정욱"}`을 보내 회원 존재 여부를 확인합니다. 새 회원은 `/user/sign-up`에 선택적으로 `reservationTime`을 보내 회원가입·체크인 후 예약까지 생성할 수 있습니다. 기존 회원은 별도 예약 API를 사용합니다. `duplicateName=true`이면 전화번호를 한 번 더 받아 구분합니다. 예약 과정에서는 회원 조회 응답의 `userId`를 쓰지 않고 이름과 필요 시 전화번호를 `/user/reservation`에 보냅니다.
 
-이번 변경에는 예약 가능 시간 조회나 예약 가능 방문 목적 조회 API가 포함되지 않습니다. 예약 생성 시 서버가 방문 목적의 예약 여부를 확인하고, DB가 중복 예약을 최종 차단합니다.
+예약할 단위는 다음 두 가지입니다. 하위 방문목적은 상위가 다르면 이름이 겹칠 수 있으므로 ID로 지정합니다.
 
-`POST /user/reservation` 요청 예시:
+| 예약 단위 | 조건 | 지정 방법 |
+|------|------|------|
+| 상위 방문목적 | `reservationStatus=RESERVATION` | `purposeId` (또는 기존 앱 호환용 `purpose` 이름) |
+| 하위 방문목적 | 상위가 `SUB_INCLUDE`이고 `subPurposeReservation=true` | `subPurposeId` (`purposeId`를 함께 보내면 상위가 일치해야 함) |
+
+- 우선순위: `subPurposeId` → `purposeId` → `purpose` 이름. 셋 다 없으면 400 `RESERVATION_TARGET_REQUIRED`입니다.
+- `SUB_INCLUDE` 상위 방문목적 자체나 `subPurposeReservation=false`인 하위 방문목적은 400 `RESERVATION_NOT_ALLOWED`입니다.
+- 다른 기관의 하위 방문목적이거나 `purposeId`와 상위가 다르면 404 `SUB_PURPOSE_NOT_FOUND`입니다.
+
+### 예약 가능 방문 목적 조회 `GET /user/reservation/purpose`
 
 ```json
 {
-  "purpose": "음악실",
+  "purposes": [
+    {
+      "id": 3,
+      "purpose": "게임",
+      "reservationStatus": "SUB_INCLUDE",
+      "subPurposes": [
+        { "subPurposeId": 1, "subPurpose": "PC 1", "subPurposeReservation": true }
+      ]
+    },
+    { "id": 5, "purpose": "음악실", "reservationStatus": "RESERVATION", "subPurposes": [] }
+  ]
+}
+```
+
+- 기존 필드(`id`, `purpose`, `reservationStatus`)는 그대로이고 `subPurposes`가 추가되었습니다.
+
+### 예약 가능 시간 조회 `GET /user/reservation`
+
+| 파라미터 | 타입 | 설명 |
+|------|------|------|
+| purpose | string | 기존 앱 호환용 방문목적 이름 |
+| purposeId | long | 상위 방문목적 ID |
+| subPurposeId | long | 하위 방문목적 ID |
+
+- 예: `GET /user/reservation?subPurposeId=1`, `GET /user/reservation?purposeId=5`, `GET /user/reservation?purpose=음악실`
+- 응답: `{ "times": ["09:30", "10:30", ...] }` — 오늘 해당 단위에 예약되지 않은 시각
+
+### 예약 생성 `POST /user/reservation`
+
+```json
+{
+  "purposeId": 3,
+  "subPurposeId": 1,
   "name": "김정욱",
   "phone": null,
   "maleCount": 1,
@@ -1218,11 +1297,67 @@ Body: Excel 파일 (byte[])
 }
 ```
 
-- `reservationStatus=RESERVATION`인 목적에만 예약할 수 있습니다. 값은 `RESERVATION`(예약 필요), `NONE`(예약 불필요), `SUB_INCLUDE`(하위 방문 목적 있음)이며 기존 방문 목적의 기본값은 `NONE`입니다. `SUB_INCLUDE`는 `POST /purpose/sub`로 하위 방문목적을 만들 때 상위 방문목적에 저장됩니다. `/purpose` 생성·수정 요청에 `reservationStatus`는 필수이고, 방문 목적 조회 응답에도 포함됩니다.
-- 예약 날짜는 요청 당일로 저장합니다. 선택 가능한 시작 시각은 09:30~20:30이며, 같은 회원의 여러 예약은 허용하되 같은 시설·날짜·시각에는 한 건만 저장됩니다. 중복 슬롯은 HTTP 409를 반환합니다. 지난 시각인지 서버에서 별도로 검사하지 않습니다.
+- 기존 앱은 `"purpose": "음악실"`처럼 이름만 보내도 상위 방문목적 단위로 예약됩니다.
+- 예약 날짜는 요청 당일로 저장합니다. 선택 가능한 시작 시각은 09:30~20:30이며, 같은 회원의 여러 예약은 허용하되 같은 예약 단위·날짜·시각에는 한 건만 저장됩니다. 중복 슬롯은 HTTP 409를 반환합니다. 지난 시각인지 서버에서 별도로 검사하지 않습니다.
 - 기존 회원은 이 요청으로 예약만 생성합니다. 체크인 기록이나 방문 횟수는 변경하지 않습니다. 일반 목적의 기존 회원은 기존 `POST /user/check-in`을 사용합니다.
 - `phone`이 null이거나 빈 값이면 이름만으로, 번호가 있으면 이름을 비교하지 않고 전화번호만으로 구즉 회원을 단건 조회합니다. 전화번호는 입력값과 DB 값 모두 하이픈을 제거하여 대조합니다. 앞 단계에서 회원을 확인한 요청을 전제로 하며, 예약 서비스에서 회원 존재 여부를 재검사하지 않습니다. 동일 조건의 회원이 여러 명이면 JPA 단건 조회 오류가 발생합니다.
 - 성공 시 HTTP 201을 반환합니다. 예약에 회원 이름과 대표 전화번호를 저장하며, 번호가 없으면 비워 둡니다. 예약 종료 문자 발송은 아직 연결되지 않았습니다.
+
+### 예약이 정리되는 경우
+
+| 변경 | 정리되는 예약 |
+|------|------|
+| 방문목적 `RESERVATION` → `NONE` (`PATCH /purpose/{id}`) | 그 방문목적 단위의 오늘 이후 예약 |
+| 방문목적 `RESERVATION` → `SUB_INCLUDE` (`POST /purpose/sub`) | 그 방문목적 단위의 오늘 이후 예약 |
+| 하위 방문목적 `subPurposeReservation` true → false (`PATCH /purpose/sub/{id}`) | 그 하위 방문목적의 오늘 이후 예약 |
+| 하위 방문목적 삭제 (`DELETE /purpose/sub/{id}`) | 그 하위 방문목적의 모든 예약 |
+| 방문목적 삭제 (`DELETE /purpose/{id}`) | 그 방문목적과 하위 방문목적의 모든 예약 |
+
+---
+
+## 시설 예약 현황 (관리자, 토큰 필요)
+
+### 오늘 예약 현황 `GET /reservation`
+
+```json
+{
+  "inUseCount": 2,
+  "availableCount": 1,
+  "facilities": [
+    { "purposeId": 3, "purpose": "게임", "subPurposeId": 1, "subPurpose": "PC 1" },
+    { "purposeId": 3, "purpose": "게임", "subPurposeId": 2, "subPurpose": "PC 2" },
+    { "purposeId": 5, "purpose": "음악실", "subPurposeId": null, "subPurpose": null }
+  ],
+  "reservations": [
+    {
+      "id": 10,
+      "purposeId": 3,
+      "purpose": "게임",
+      "subPurposeId": 1,
+      "subPurpose": "PC 1",
+      "name": "김정욱",
+      "maleCount": 1,
+      "femaleCount": 0,
+      "phone": "01012345678",
+      "startTime": "10:30:00",
+      "endTime": "11:30:00"
+    }
+  ]
+}
+```
+
+| 필드 | 설명 |
+|------|------|
+| inUseCount | 현재 시간대의 전체 예약 수 |
+| availableCount | 현재 시간대에 비어 있는 예약 단위 수 (`facilities` 수 − 현재 시간대에 예약된 단위 수) |
+| facilities | 기관의 예약 가능 단위 평탄 목록. 상위 순서(`purposeIndex`), 하위 순서(`subPurposeIndex`)대로 정렬합니다. 상위 방문목적 단위면 `subPurposeId`·`subPurpose`가 null입니다. |
+| reservations | 오늘 예약 목록(시작 시각 오름차순). `purpose`는 상위 방문목적 이름이며, 하위 방문목적 단위 예약이면 `subPurposeId`·`subPurpose`가 채워집니다. |
+
+- 예약과 시설은 이름이 아니라 `(purposeId, subPurposeId)` 쌍으로 연결합니다.
+
+### 예약 생성 `POST /reservation`
+
+`purpose`(이름), `purposeId`, `subPurposeId`로 예약 단위를 지정합니다. 규칙은 이용자 예약 생성과 같고, 나머지 필드(`name`, `phone`, `maleCount`, `femaleCount`, `startTime`)는 기존과 같습니다.
 
 ---
 

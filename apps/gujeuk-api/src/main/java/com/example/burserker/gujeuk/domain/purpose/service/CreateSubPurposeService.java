@@ -6,6 +6,7 @@ import com.example.burserker.gujeuk.domain.purpose.domain.Purpose;
 import com.example.burserker.gujeuk.domain.purpose.domain.SubPurpose;
 import com.example.burserker.gujeuk.domain.purpose.domain.enums.ReservationStatus;
 import com.example.burserker.gujeuk.domain.purpose.domain.repository.PurposeRepository;
+import com.example.burserker.gujeuk.domain.purpose.domain.repository.PurposeReservationRepository;
 import com.example.burserker.gujeuk.domain.purpose.domain.repository.SubPurposeRepository;
 import com.example.burserker.gujeuk.domain.purpose.exception.SubPurposeAlreadyExistException;
 import com.example.burserker.gujeuk.domain.purpose.presentation.dto.request.SubPurposeRequest;
@@ -13,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Optional;
 
 @Service
@@ -20,6 +23,7 @@ import java.util.Optional;
 public class CreateSubPurposeService {
     private final PurposeRepository purposeRepository;
     private final SubPurposeRepository subPurposeRepository;
+    private final PurposeReservationRepository purposeReservationRepository;
     private final OrganFacade organFacade;
 
     @Transactional
@@ -31,6 +35,12 @@ public class CreateSubPurposeService {
         Organ organ = organFacade.getOrganById(organId);
 
         Purpose purpose = lockedPurpose.orElseGet(() -> createPurpose(organ, request.purpose()));
+
+        // RESERVATION → SUB_INCLUDE: 상위 단위로는 더 예약할 수 없으므로 오늘 이후 상위 단위 예약을 정리한다
+        if (purpose.isReservable()) {
+            purposeReservationRepository.deletePurposeUnitReservationsFrom(
+                    purpose.getId(), LocalDate.now(ZoneId.of("Asia/Seoul")));
+        }
 
         purpose.changeToSubInclude();
 

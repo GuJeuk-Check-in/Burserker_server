@@ -47,6 +47,9 @@ public record SignupRequest(
         @NotNull(message = "방문시각을 비워둘 수 없습니다.")
         LocalDateTime visitTime,
 
-        ReservationTime reservationTime
+        ReservationTime reservationTime,
+
+        // reservationTime과 함께 하위 방문목적 단위로 예약할 때만 보낸다
+        Long subPurposeId
 ) {
 }

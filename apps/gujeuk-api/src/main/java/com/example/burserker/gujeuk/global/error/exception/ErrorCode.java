@@ -32,6 +32,7 @@ public enum ErrorCode {
     SUB_INCLUDE_NOT_ALLOWED(400, "하위 방문목적 생성으로만 설정할 수 있는 상태입니다."),
 
     RESERVATION_NOT_ALLOWED(400, "예약할 수 없는 방문 목적입니다."),
+    RESERVATION_TARGET_REQUIRED(400, "예약할 방문 목적을 선택해주세요."),
     RESERVATION_SLOT_UNAVAILABLE(409, "이미 예약된 시간입니다."),
     RESERVATION_NOT_FOUND(404, "존재하지 않는 예약입니다."),
     RESERVATION_ALREADY_EXIST(409, "이미 해당 시간의 예약이 존재합니다."),

@@ -1,7 +1,6 @@
 package com.example.burserker.gujeuk.domain.purpose.domain.repository;
 
 import com.example.burserker.gujeuk.domain.purpose.domain.Purpose;
-import com.example.burserker.gujeuk.domain.purpose.domain.enums.ReservationStatus;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -38,5 +37,5 @@ public interface PurposeRepository extends JpaRepository<Purpose, Long>, Purpose
 
     List<Purpose> findAllByOrderByPurposeIndexAscIdAsc();
 
-    int countByOrganIdAndReservationStatus(Long organId, ReservationStatus reservationStatus);
+    List<Purpose> findAllByOrganIdOrderByPurposeIndexAscIdAsc(Long organId);
 }
