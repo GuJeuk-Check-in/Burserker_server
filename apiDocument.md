@@ -960,30 +960,63 @@ Body: Excel 파일 (byte[])
 | 항목 | 내용 |
 |------|------|
 | **Domain** | Purpose |
-| **기능** | 모든 방문목적 목록 조회 |
+| **기능** | 모든 방문목적 목록과 각 방문목적의 하위 방문목적 목록 조회 |
 | **HTTP Method** | `GET` |
 | **API Path** | `/purpose/all` |
 | **토큰 필요** | X |
 
+- 등록된 모든 기관의 방문목적을 돌려준다. 기관별로 걸러지지 않는다.
+- 방문목적은 `purposeIndex` 오름차순(같으면 `purposeId` 오름차순), 하위 방문목적은 `subPurposeIndex` 오름차순으로 정렬한다.
+- 하위 방문목적이 없는 방문목적은 `subPurposes`가 빈 배열(`[]`)이다.
+- 하위 방문목적 이름은 중복될 수 있으므로 `subPurposeId`로 구분한다.
+- 등록된 방문목적이 없으면 `purposes`가 빈 배열이다.
+
 **Response (200 OK)**
 ```json
-[
-  {
-    "id": 1,
-    "purpose": "string",
-    "reservationStatus": "RESERVATION"
-  },
-  {
-    "id": 2,
-    "purpose": "string",
-    "reservationStatus": "NONE"
-  }
-]
+{
+  "purposes": [
+    {
+      "purposeId": 3,
+      "purpose": "게임",
+      "reservationStatus": "SUB_INCLUDE",
+      "subPurposes": [
+        {
+          "subPurposeId": 1,
+          "subPurpose": "PC 1",
+          "subPurposeReservation": true
+        },
+        {
+          "subPurposeId": 2,
+          "subPurpose": "PC 2",
+          "subPurposeReservation": true
+        }
+      ]
+    },
+    {
+      "purposeId": 5,
+      "purpose": "음악실",
+      "reservationStatus": "RESERVATION",
+      "subPurposes": []
+    }
+  ]
+}
 ```
 
-**Error List**
+| 필드 | 타입 | 설명 |
+|------|------|------|
+| purposes | object[] | 방문목적 목록 |
+| purposes[].purposeId | long | 방문목적 ID |
+| purposes[].purpose | string | 방문목적 이름 |
+| purposes[].reservationStatus | string | `RESERVATION`(예약 필요), `NONE`(예약 없이 이용), `SUB_INCLUDE`(하위 방문목적 포함) |
+| purposes[].subPurposes | object[] | 하위 방문목적 목록. 없으면 `[]` |
+| purposes[].subPurposes[].subPurposeId | long | 하위 방문목적 ID |
+| purposes[].subPurposes[].subPurpose | string | 하위 방문목적 이름 |
+| purposes[].subPurposes[].subPurposeReservation | boolean | 예약이 필요하면 `true` |
 
-에러 없음
+**Error List**
+<details>
+<summary><code>500</code> INTERNAL_SERVER_ERROR - 서버 내부 오류가 발생했습니다</summary>
+</details>
 
 ---
 
