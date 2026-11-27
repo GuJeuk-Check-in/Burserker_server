@@ -12,6 +12,8 @@ public interface SubPurposeRepository extends JpaRepository<SubPurpose, Long> {
 
     boolean existsByPurposeIdAndSubPurposeName(Long purposeId, String subPurposeName);
 
+    boolean existsByPurposeIdAndSubPurposeNameAndIdNot(Long purposeId, String subPurposeName, Long id);
+
     boolean existsByPurposeId(Long purposeId);
 
     void deleteAllByPurposeId(Long purposeId);
