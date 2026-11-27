@@ -36,6 +36,8 @@ public enum ErrorCode {
     SIGN_UP_REQUIRED(400, "빈칸을 채워줘요!"),
 
     LOG_NOT_FOUND(404, "방명록을 찾을 수 없습니다."),
+    LOG_CHECKED_OUT(409, "이미 퇴실한 방문입니다."),
+    CHECK_OUT_USAGE_ACTIVE(409, "시설 이용 중에는 퇴실할 수 없습니다."),
     ORGAN_LOG_REQUIRED(400, "빈칸을 채워주세요."),
     ORGAN_LOG_PURPOSE_NOT_FOUND(404, "없는 이용대장이에요."),
     LOG_DETAIL_NOT_FOUND(400, "존재하지 않는 방명록 입니다!"),

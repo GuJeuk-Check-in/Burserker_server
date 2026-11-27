@@ -42,6 +42,8 @@ public class Log extends BaseIdEntity {
     @Column(nullable = false)
     private LocalDateTime visitAt;
 
+    private LocalDateTime checkedOutAt;
+
     public static Log createAdult(Gender gender, LocalDateTime visitAt) {
         return Log.builder().gender(gender).visitAt(visitAt).build();
     }
@@ -73,7 +75,18 @@ public class Log extends BaseIdEntity {
         return value == null || value.isBlank() ? null : value;
     }
 
+    public boolean isCheckedOut() {
+        return checkedOutAt != null;
+    }
+
+    public void checkOut(LocalDateTime now) {
+        this.checkedOutAt = now;
+    }
+
     public long getOrganRemainTime(LocalDateTime now) {
+        if (isCheckedOut()) {
+            return 0;
+        }
         long elapsedMinutes = Duration.between(visitAt, now).toMinutes();
         return Math.max(0, 180 - elapsedMinutes);
     }

@@ -4,6 +4,7 @@ import com.example.burserker.beopdong.domain.check_in.exception.InvalidVisitPurp
 import com.example.burserker.beopdong.domain.check_in.presentation.dto.request.UpdateVisitPurposeRequest;
 import com.example.burserker.beopdong.domain.check_in.presentation.dto.response.UpdateVisitPurposeResponse;
 import com.example.burserker.beopdong.domain.log.domain.Log;
+import com.example.burserker.beopdong.domain.log.exception.LogCheckedOutException;
 import com.example.burserker.beopdong.domain.log.domain.VisitPurpose;
 import com.example.burserker.beopdong.domain.log.domain.repository.LogRepository;
 import com.example.burserker.beopdong.domain.log.domain.repository.VisitPurposeRepository;
@@ -35,6 +36,10 @@ public class UpdateVisitPurposeService {
     public UpdateVisitPurposeResponse execute(UpdateVisitPurposeRequest request) {
         Log log = logRepository.findById(request.logId())
                 .orElseThrow(() -> LogDetailNotFoundException.EXCEPTION);
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+        if (log.isCheckedOut()) {
+            throw LogCheckedOutException.EXCEPTION;
+        }
         List<Long> purposeIds = request.purpose().stream().distinct().toList();
         List<Purpose> purposes = new ArrayList<>(purposeRepository.findAllById(purposeIds));
         if (purposes.size() != purposeIds.size()) {
@@ -45,7 +50,6 @@ public class UpdateVisitPurposeService {
         if (purposes.stream().noneMatch(purpose -> purpose.getId().equals(rest.getId()))) {
             purposes.add(rest);
         }
-        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
         for (PurposeUsage usage : purposeUsageRepository.findUsagesByLogId(log.getId())) {
             if (!usage.isCompleted() && usage.getEndAt().isAfter(now)
                     && !purposeIds.contains(usage.getPurpose().getId())) {
